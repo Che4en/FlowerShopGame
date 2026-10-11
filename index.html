@@ -1,0 +1,2470 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="ninja">
+<meta name="description" content="FlowerShop — пиксельная игра о цветочном магазине. Закупай цветы, собирай букеты, обслуживай клиентов.">
+<meta property="og:title" content="FlowerShop — стань лучшим флористом">
+<meta property="og:description" content="Пиксельная игра о цветочном магазине. Автор: ninja.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B8%3C/text%3E%3C/svg%3E">
+<title>FlowerShop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-main:#14172a; --bg-panel:#1c2140; --bg-panel-2:#242a4d;
+  --accent:#3fb56d; --accent-dark:#2f9257; --accent-soft:rgba(63,181,109,0.16);
+  --text:#f3ecdd; --text-dim:#a7adc9; --border:#333a5c;
+  --danger:#e0525f; --danger-dark:#a83a44; --inactive:#3d4368; --cream:#f6f1e3; --gold:#f7c948;
+  --radius-lg:10px; --radius-md:8px;
+  --font-pixel:'Press Start 2P','Nunito',system-ui,-apple-system,sans-serif;
+  --font-body:'Nunito',system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg-main:#14172a; --bg-panel:#1c2140; --bg-panel-2:#242a4d;
+    --accent:#3fb56d; --accent-dark:#2f9257; --accent-soft:rgba(63,181,109,0.16);
+    --text:#f3ecdd; --text-dim:#a7adc9; --border:#333a5c;
+    --danger:#e0525f; --danger-dark:#a83a44; --inactive:#3d4368; --cream:#f6f1e3; --gold:#f7c948;
+  }
+}
+:root[data-theme="dark"]{
+  --bg-main:#14172a; --bg-panel:#1c2140; --bg-panel-2:#242a4d;
+  --accent:#3fb56d; --accent-dark:#2f9257; --accent-soft:rgba(63,181,109,0.16);
+  --text:#f3ecdd; --text-dim:#a7adc9; --border:#333a5c;
+  --danger:#e0525f; --danger-dark:#a83a44; --inactive:#3d4368; --cream:#f6f1e3; --gold:#f7c948;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0; background:var(--bg-main); color:var(--text); font-family:var(--font-body); -webkit-font-smoothing:antialiased; -webkit-tap-highlight-color:transparent;}
+button{font:inherit; cursor:pointer;}
+h1,h2,h3,p{margin:0;}
+svg,canvas{display:block; image-rendering:pixelated;}
+.muted{color:var(--text-dim); font-size:13px;}
+#app{max-width:1000px; margin:0 auto; min-height:100vh; background:var(--bg-main); position:relative; overflow-x:hidden;}
+.screen{display:none;}
+.screen.active{display:flex; flex-direction:column; min-height:100vh; animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(63,181,109,.5);} 70%{box-shadow:0 0 0 9px rgba(63,181,109,0);} 100%{box-shadow:0 0 0 0 rgba(63,181,109,0);}}
+@keyframes bob{0%,100%{transform:translateY(0);} 50%{transform:translateY(-3px);}}
+
+.btn{font-family:var(--font-body); font-weight:800; border:2px solid rgba(0,0,0,.25); border-radius:8px; padding:13px 20px; font-size:15px; color:var(--text); user-select:none; transition:transform .08s ease, filter .15s ease;}
+.btn:active{transform:translateY(2px);}
+.btn-primary{background:var(--accent); box-shadow:0 3px 0 var(--accent-dark);}
+.btn-secondary{background:var(--bg-panel-2); border-color:var(--border); box-shadow:0 3px 0 rgba(0,0,0,.3);}
+.btn-danger{background:var(--danger); box-shadow:0 3px 0 var(--danger-dark);}
+.btn-inactive{background:var(--inactive); color:var(--text-dim); cursor:not-allowed; opacity:.7; box-shadow:none;}
+.btn:disabled{cursor:not-allowed; opacity:.6;}
+.btn-sm{padding:7px 12px; font-size:13px;}
+.icon-btn{background:var(--bg-panel-2); border:2px solid var(--border); color:var(--text); width:40px; height:40px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0;}
+
+/* MENU */
+#screen-menu{position:relative; overflow:hidden; background:#1b1740;}
+.menu-layout{display:flex; flex-direction:row; align-items:center; min-height:100vh; width:100%;}
+.menu-left{flex:0 0 340px; padding:24px 28px; display:flex; flex-direction:column; align-items:center; text-align:center; z-index:2;}
+.menu-title{font-family:var(--font-pixel); font-size:20px; line-height:1.8; color:var(--cream); text-shadow:0 4px 0 rgba(0,0,0,.45);}
+.menu-sub2{font-family:var(--font-pixel); font-size:10px; color:var(--gold); margin-top:4px;}
+.menu-subtitle{color:var(--text-dim); margin:12px 0 26px; font-size:14px;}
+.menu-buttons{display:flex; flex-direction:column; gap:11px; width:100%; max-width:260px;}
+.menu-right{flex:1; align-self:flex-end; min-width:0; position:relative;}
+.menu-right::after{content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(90deg,#1b1740 0,rgba(27,23,64,0) 22%),linear-gradient(180deg,#1b1740 0,rgba(27,23,64,0) 14%);}
+#menu-canvas{width:100%; height:auto; aspect-ratio:4/3;}
+.menu-version{position:absolute; bottom:10px; left:14px; font-size:11px; color:var(--text-dim); opacity:.6; z-index:3;}
+@media (max-width:760px){
+  .menu-layout{flex-direction:column; justify-content:flex-start;}
+  .menu-left{flex:0 0 auto; width:100%; padding:22px 20px 10px;}
+  .menu-right{width:100%; order:3;}
+  .menu-right::after{background:linear-gradient(180deg,#1b1740 0,rgba(27,23,64,0) 14%);}
+  .menu-buttons{order:2;}
+}
+
+/* HUB */
+.hub-layout{display:flex; flex-direction:row; flex:1;}
+.hub-sidebar{width:92px; flex-shrink:0; background:var(--bg-panel); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:16px 8px; gap:8px;}
+.nav-item{position:relative; display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 4px; border-radius:8px; color:var(--text-dim); border:2px solid transparent; font-size:11px; font-weight:700; text-align:center; user-select:none;}
+.nav-item .nav-icon{font-size:20px;}
+.nav-item.active{border-color:var(--accent); background:var(--accent-soft); color:var(--text);}
+.nav-badge{position:absolute; top:2px; right:6px; background:var(--danger); color:#fff; font-size:10px; font-weight:900; border-radius:999px; min-width:16px; height:16px; display:flex; align-items:center; justify-content:center; padding:0 3px;}
+.hub-main{flex:1; display:flex; flex-direction:column; min-width:0;}
+.hub-topbar{display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--bg-panel); border-bottom:1px solid var(--border); flex-wrap:wrap;}
+.hud-chip{background:var(--bg-panel-2); border:2px solid var(--border); border-radius:6px; padding:7px 12px; font-weight:800; display:flex; align-items:center; gap:6px; font-size:13px;}
+.hud-rep{display:flex; align-items:center; gap:8px; flex:1; min-width:140px; max-width:220px;}
+.hud-rep-bar{flex:1; height:10px; background:var(--bg-panel-2); border:1px solid var(--border); border-radius:4px; overflow:hidden;}
+.hud-rep-fill{height:100%; background:linear-gradient(90deg,#ef7fa4,var(--accent)); width:0%; transition:width .3s;}
+.hud-rep-text{font-size:11px; color:var(--text-dim); white-space:nowrap;}
+.hub-topbar .icon-btn{margin-left:auto;}
+.hub-stage{flex:1; position:relative; min-height:420px; overflow:hidden; background:#3a2a1e;}
+#hub-bg{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:bottom;}
+.hub-counter{position:absolute; bottom:0; left:0; right:0; height:58px; background:repeating-linear-gradient(180deg,#8a5a34 0 4px,#7a4c2a 4px 8px); border-top:4px solid #a8723f; box-shadow:0 -6px 0 rgba(0,0,0,.18);}
+.hub-content{position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px 12px 70px; overflow-y:auto;}
+.hub-content.open{justify-content:flex-end;}
+.mobile-give{display:none;}
+@media (max-width:760px){
+  .mobile-give{display:flex; position:sticky; bottom:0; align-items:center; justify-content:space-between; gap:10px; background:var(--bg-panel); border:2px solid var(--accent); border-radius:10px; padding:8px 12px; z-index:6;}
+  .mobile-give .btn{padding:10px 16px;}
+}
+@media (max-width:720px){
+  .hub-layout{flex-direction:column;}
+  .hub-sidebar{width:100%; flex-direction:row; order:2; justify-content:space-around; padding:8px; border-right:none; border-top:1px solid var(--border); position:sticky; bottom:0; z-index:5;}
+  .nav-item{padding:6px; font-size:10px;}
+  .hub-main{order:1;}
+}
+
+/* Counter clients */
+.counter-row{display:flex; gap:12px; justify-content:center; align-items:flex-end; flex-wrap:wrap; width:100%;}
+.client-card{width:176px; background:rgba(28,33,64,.92); border:2px solid var(--border); border-radius:var(--radius-md); padding:10px; display:flex; flex-direction:column; align-items:center; gap:5px; text-align:center; cursor:pointer; user-select:none; transition:transform .1s, border-color .15s;}
+.client-card:hover{border-color:var(--accent); transform:translateY(-3px);}
+.client-card.urgent{border-color:var(--danger);}
+.client-card.vip{border-color:var(--gold);}
+.cc-sprite{animation:bob 1.8s ease-in-out infinite;}
+.cc-name{font-weight:900; font-size:14px;}
+.cc-order{font-size:12px; color:var(--text); line-height:1.35; min-height:48px;}
+.cc-meta{font-size:10px; color:var(--text-dim); font-weight:700; text-transform:uppercase; letter-spacing:.03em;}
+.client-slot-empty{width:176px; min-height:150px; border:2px dashed rgba(255,255,255,.18); border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.35); font-size:12px; font-weight:700;}
+.badge{display:inline-block; font-size:9px; font-weight:900; padding:2px 5px; border-radius:4px; vertical-align:middle; margin-left:4px; text-transform:uppercase;}
+.badge.vip{background:var(--gold); color:#2a2000;}
+.badge.rush{background:var(--danger); color:#fff;}
+.badge.calm{background:#4a6fa5; color:#fff;}
+.patience-bar{width:100%; max-width:160px; height:9px; background:var(--bg-panel-2); border:1px solid var(--border); border-radius:4px; overflow:hidden;}
+.patience-fill{height:100%; width:100%; background:var(--accent); transition:width .25s linear, background-color .25s linear;}
+
+/* Info cards (morning / summary) */
+.info-card{background:rgba(28,33,64,.95); border:2px solid var(--border); border-radius:var(--radius-lg); padding:18px 20px; width:100%; max-width:470px; display:flex; flex-direction:column; gap:10px;}
+.info-card h3{font-family:var(--font-pixel); font-size:12px; line-height:1.6;}
+.info-row{display:flex; justify-content:space-between; gap:12px; font-size:14px; font-weight:700;}
+.info-row .v{font-weight:900;}
+.info-note{font-size:12px; color:var(--text-dim); line-height:1.45;}
+.info-actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:4px;}
+.info-actions .btn{flex:1;}
+.pos{color:#7be0a0;} .neg{color:#ff8d95;}
+.tip-box{background:var(--accent-soft); border:1px dashed var(--accent); border-radius:6px; padding:8px 10px; font-size:12px; line-height:1.45;}
+
+/* SUBHEADER */
+.subheader{display:flex; align-items:center; gap:12px; padding:14px 18px; border-bottom:1px solid var(--border);}
+.subheader h2{font-family:var(--font-pixel); font-size:13px; line-height:1.4;}
+.mini-status{margin-left:auto; display:flex; gap:8px; align-items:center; font-weight:800; font-size:13px;}
+
+/* ASSEMBLE */
+.order-banner{margin:14px 16px 0; background:var(--bg-panel); border:2px solid var(--border); border-radius:var(--radius-md); padding:12px 16px; display:flex; gap:14px; align-items:center; flex-wrap:wrap;}
+.ob-left{display:flex; gap:12px; align-items:center; flex:1; min-width:240px;}
+.ob-name{font-weight:900;}
+.ob-text{font-size:13px; line-height:1.45; margin-top:2px;}
+.assemble-layout{display:flex; gap:16px; padding:16px; flex:1; flex-wrap:wrap;}
+.slots-col{flex:1.6; min-width:300px; display:flex; flex-direction:column; gap:12px;}
+.slot-box{background:var(--bg-panel); border:2px solid var(--border); border-radius:var(--radius-md); padding:12px;}
+.slot-title{font-weight:900; font-size:13px; margin-bottom:8px; display:flex; justify-content:space-between;}
+.slot-title span{color:var(--text-dim); font-weight:700; font-size:12px;}
+.chips{display:flex; gap:8px; flex-wrap:wrap;}
+.fchip{width:84px; background:var(--bg-panel-2); border:2px solid var(--border); border-radius:8px; padding:6px 4px; text-align:center; user-select:none; display:flex; flex-direction:column; align-items:center; gap:2px;}
+.fchip.sel{border-color:var(--accent); background:var(--accent-soft);}
+.fchip.dis{opacity:.35; cursor:not-allowed;}
+.fchip .fn{font-size:11px; font-weight:800;}
+.fchip .fs{font-size:10px; color:var(--text-dim); font-weight:700;}
+.fchip .ft{font-size:9px; color:var(--text-dim); line-height:1.2; min-height:22px;}
+.preview-col{flex:1; min-width:260px; background:var(--bg-panel); border:2px solid var(--border); border-radius:var(--radius-lg); padding:16px; display:flex; flex-direction:column; align-items:center; gap:10px; height:fit-content;}
+.bouquet-preview-box{width:180px; height:200px; position:relative; margin:0 auto;}
+.bq-item{position:absolute; transform:translate(-50%,-50%);}
+.bq-wrap{position:absolute; bottom:0; left:50%; transform:translateX(-50%);}
+.bq-bow{position:absolute; bottom:8px; left:50%; transform:translateX(-50%);}
+.metrics{width:100%; display:flex; flex-direction:column; gap:6px; font-size:13px; font-weight:700;}
+.metric{display:flex; justify-content:space-between; gap:8px;}
+.metric .ok{color:#7be0a0;} .metric .bad{color:#ff8d95;} .metric .mid{color:var(--gold);}
+.stars{font-size:22px; letter-spacing:2px; color:var(--gold);}
+.stars .off{color:#46405a;}
+
+/* RESULT */
+.result-scene{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:26px 20px; background:radial-gradient(ellipse at 50% 100%,#2a2440,#14172a 70%); text-align:center;}
+.speech-bubble{background:var(--cream); color:#2a2440; border-radius:10px; padding:14px 18px; max-width:340px; font-weight:700; border:2px solid #2a2440;}
+.reward-box{background:var(--bg-panel); border:2px solid var(--border); border-radius:var(--radius-md); padding:14px 24px; text-align:left; min-width:240px;}
+.reward-box .title{color:var(--text-dim); font-size:11px; margin-bottom:6px; text-transform:uppercase; letter-spacing:.03em;}
+.reward-line{font-weight:800; font-size:15px; margin-top:2px;}
+
+/* STOCK */
+.stock-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:12px; padding:16px; flex:1; align-content:start;}
+.stock-card{background:var(--bg-panel); border:2px solid var(--border); border-radius:var(--radius-md); padding:12px; display:flex; flex-direction:column; gap:6px;}
+.sc-top{display:flex; gap:10px; align-items:center;}
+.sc-name{font-weight:900;}
+.sc-tags{font-size:11px; color:var(--text-dim);}
+.sc-row{display:flex; justify-content:space-between; font-size:12px; font-weight:700;}
+.sc-actions{display:flex; gap:8px;}
+.sc-actions .btn{flex:1;}
+.warn{color:var(--gold);}
+.stock-note{margin:12px 16px 0; font-size:12px;}
+
+/* MAP */
+.map-wrap{padding:16px; flex:1;}
+.map-area{position:relative; width:100%; aspect-ratio:4/3; background:#1c2635; border:3px solid var(--border); border-radius:var(--radius-md); overflow:hidden;}
+.map-bg{position:absolute; inset:0; background-image:repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0 2px, transparent 2px 26px), repeating-linear-gradient(90deg, rgba(255,255,255,0.04) 0 2px, transparent 2px 26px);}
+.map-pin{position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:4px;}
+.map-pin-dot{width:16px; height:16px; background:var(--accent); border:2px solid var(--cream);}
+.map-pin.locked .map-pin-dot{background:var(--inactive); border-color:var(--text-dim);}
+.map-pin.current .map-pin-dot{animation:pulse 1.5s infinite;}
+.map-pin-label{font-size:10px; font-weight:800; background:rgba(0,0,0,.55); padding:3px 6px; border-radius:4px; white-space:nowrap;}
+.map-legend{padding:10px 4px; font-size:12px; color:var(--text-dim); line-height:1.5;}
+
+/* SHOP upgrades */
+.upgrades-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; padding:16px 18px;}
+.upgrade-card{background:var(--bg-panel); border:2px solid var(--border); border-radius:var(--radius-md); padding:18px; text-align:center; display:flex; flex-direction:column; gap:8px; align-items:center;}
+.upgrade-icon{font-size:32px;}
+.upgrade-name{font-weight:800;}
+.upgrade-desc{font-size:12px; color:var(--text-dim); min-height:32px;}
+
+/* QUESTS */
+.tab-row{display:flex; gap:8px; padding:12px 16px 0; flex-wrap:wrap;}
+.tab-chip{background:var(--bg-panel-2); border:2px solid var(--border); color:var(--text-dim); padding:8px 16px; border-radius:6px; font-weight:800; font-size:12px; white-space:nowrap;}
+.tab-chip.active{background:var(--accent); color:var(--text); border-color:var(--accent-dark);}
+.quests-list{padding:16px 18px; display:flex; flex-direction:column; gap:12px;}
+.quest-card{background:var(--bg-panel); border:2px solid var(--border); border-radius:var(--radius-md); padding:14px 16px;}
+.quest-card.claimed{opacity:.6;}
+.quest-top{display:flex; justify-content:space-between; gap:10px; font-weight:800; margin-bottom:8px;}
+.quest-bar{height:8px; background:var(--bg-panel-2); border:1px solid var(--border); border-radius:4px; overflow:hidden; margin-bottom:8px;}
+.quest-bar-fill{height:100%; background:var(--accent); transition:width .3s;}
+.quest-bottom{display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--text-dim); gap:10px;}
+.quest-bottom .btn{padding:8px 14px; font-size:13px;}
+
+
+/* DELIVERY / PHONE / REGULARS */
+.hub-content{gap:12px;}
+.phone-strip{width:100%; max-width:760px; background:rgba(28,33,64,.92); border:2px solid var(--border); border-radius:var(--radius-md); padding:8px 10px;}
+.ps-title{font-size:11px; font-weight:800; color:var(--text-dim); text-transform:uppercase; letter-spacing:.03em; margin-bottom:6px;}
+.ps-row{display:flex; gap:8px; flex-wrap:wrap; align-items:stretch;}
+.phone-card{min-width:140px; background:var(--bg-panel-2); border:2px solid var(--border); border-radius:8px; padding:6px 8px; cursor:pointer; display:flex; flex-direction:column; gap:3px; user-select:none;}
+.phone-card:hover{border-color:var(--accent);}
+.phone-card.ready{border-color:var(--gold);}
+.phone-card.urgent{border-color:var(--danger);}
+.pc-name{font-weight:800; font-size:13px;}
+.ps-empty{font-size:12px; color:var(--text-dim); padding:4px 0;}
+.badge.reg{background:#b57bff; color:#1d0a33;}
+.delivery-layout{display:flex; gap:16px; padding:16px; flex-wrap:wrap; flex:1;}
+.del-map-col{flex:1.4; min-width:300px;}
+.del-side{flex:1; min-width:280px; display:flex; flex-direction:column; gap:12px;}
+.route-svg{position:absolute; inset:0; width:100%; height:100%; pointer-events:none;}
+.courier-dot{position:absolute; transform:translate(-50%,-50%); font-size:20px; transition:left .3s linear, top .3s linear; z-index:3;}
+.map-pin.shop .map-pin-dot{background:var(--gold);}
+.panel{background:var(--bg-panel); border:2px solid var(--border); border-radius:var(--radius-md); padding:12px; display:flex; flex-direction:column; gap:8px;}
+.panel h4{margin:0; font-size:12px; text-transform:uppercase; color:var(--text-dim); letter-spacing:.03em;}
+.parcel-row{display:flex; gap:10px; align-items:center; padding:8px; border:2px solid var(--border); border-radius:8px; margin-bottom:8px; cursor:pointer; background:var(--bg-panel-2); user-select:none;}
+.parcel-row.sel{border-color:var(--accent); background:var(--accent-soft);}
+.pr-info{flex:1; min-width:0; font-size:12px; font-weight:700; display:flex; flex-direction:column; gap:3px;}
+.courier-row{display:flex; justify-content:space-between; gap:8px; font-size:13px; font-weight:700; padding:4px 0;}
+.route-note{font-size:12px; color:var(--text-dim); line-height:1.5;}
+.reg-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; padding:16px;}
+.reg-card{background:var(--bg-panel); border:2px solid var(--border); border-radius:var(--radius-md); padding:14px; display:flex; flex-direction:column; gap:8px;}
+.reg-card.locked{opacity:.55;}
+.reg-top{display:flex; gap:12px; align-items:center;}
+.reg-name{font-weight:900; font-size:15px;}
+.reg-bio{font-size:12px; color:var(--text-dim); line-height:1.4;}
+.hearts{color:#ff6b9a; letter-spacing:2px; font-size:14px;}
+.chapter{font-size:12px; line-height:1.45; border-left:3px solid #b57bff; padding-left:8px;}
+.chapter.lock{border-left-color:var(--inactive); color:var(--text-dim);}
+.perk{font-size:12px; font-weight:800;}
+.story-box{background:rgba(181,123,255,.15); border:1px dashed #b57bff; border-radius:8px; padding:10px 12px; max-width:340px; text-align:left; font-size:13px; line-height:1.45;}
+.story-box .title{font-weight:900; margin-bottom:4px;}
+
+
+/* FX / COACH / BANK / SHOP */
+.fx-layer{position:fixed; inset:0; pointer-events:none; z-index:95; overflow:hidden;}
+.float-text{position:absolute; left:50%; top:30%; transform:translateX(-50%); font-weight:900; font-size:26px; text-shadow:0 3px 0 rgba(0,0,0,.5); animation:floatUp 1.3s ease-out forwards; white-space:nowrap;}
+.float-text.gold{color:#f7c948;}
+.float-text.pink{color:#ff8fb0; top:38%;}
+@keyframes floatUp{0%{opacity:0; transform:translate(-50%,20px) scale(.6);}15%{opacity:1; transform:translate(-50%,0) scale(1.15);}100%{opacity:0; transform:translate(-50%,-70px) scale(1);}}
+.conf{position:absolute; width:8px; height:8px; animation:confFly 1.4s ease-out forwards;}
+@keyframes confFly{0%{opacity:1; transform:translate(0,0) rotate(0);}100%{opacity:0; transform:translate(var(--dx),calc(var(--dy) + 600px)) rotate(var(--rot));}}
+.client-card.enter,.phone-card.enter{animation:popIn .4s cubic-bezier(.2,1.4,.4,1);}
+@keyframes popIn{0%{opacity:0; transform:translateY(40px) scale(.7);}100%{opacity:1; transform:none;}}
+.client-card.urgent,.phone-card.urgent{animation:alarm 1s infinite;}
+@keyframes alarm{0%,100%{box-shadow:0 0 0 rgba(224,82,95,0);}50%{box-shadow:0 0 16px rgba(224,82,95,.85);}}
+.stars .st.pop{display:inline-block; animation:starPop .45s cubic-bezier(.2,1.6,.4,1) both; animation-delay:calc(var(--i)*.2s + .2s);}
+@keyframes starPop{0%{opacity:0; transform:scale(0) rotate(-90deg);}100%{opacity:1; transform:none;}}
+#hub-bg{transition:filter .8s;}
+.hub-stage.evening #hub-bg,.hub-stage.summary #hub-bg{filter:brightness(.55) saturate(1.3) hue-rotate(-12deg);}
+.hub-stage.morning #hub-bg{filter:brightness(1.12) saturate(1.05);}
+.coach{position:fixed; left:50%; bottom:20px; transform:translateX(-50%); width:min(92%,470px); z-index:90; display:none; background:#2a2440; border:2px solid var(--gold); border-radius:10px; padding:12px 14px; box-shadow:0 6px 24px rgba(0,0,0,.55);}
+.coach.show{display:block; animation:popIn .3s ease;}
+.coach-text{font-size:14px; font-weight:700; line-height:1.45; margin-bottom:10px;}
+.coach-actions{display:flex; gap:8px; flex-wrap:wrap;}
+.coach-actions .btn{padding:8px 12px; font-size:13px;}
+.coach-glow{outline:3px solid var(--gold) !important; outline-offset:3px; animation:glowPulse 1s infinite;}
+@keyframes glowPulse{0%,100%{outline-color:rgba(247,201,72,.35);}50%{outline-color:#f7c948;}}
+@media (max-width:720px){ .coach{bottom:86px;} }
+.shop-h{grid-column:1/-1; font-family:var(--font-pixel); font-size:11px; color:var(--text-dim); margin-top:6px; line-height:1.6;}
+.bank-wrap{padding:16px; display:flex; flex-direction:column; gap:12px; max-width:560px; width:100%;}
+.rank-row{display:flex; align-items:center; gap:4px; font-size:13px; font-weight:700; padding:4px 0;}
+.rank-row.me{color:var(--gold);}
+@media (prefers-reduced-motion: reduce){ *,*::before,*::after{animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important;} }
+
+.save-code{width:100%; background:var(--bg-panel-2); color:var(--text); border:2px solid var(--border); border-radius:8px; padding:8px; font-family:monospace; font-size:11px; resize:vertical;}
+/* MODALS */
+.modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; z-index:50; padding:20px;}
+.modal-overlay.active{display:flex;}
+.modal{background:var(--bg-panel); border:2px solid var(--border); border-radius:var(--radius-lg); max-width:400px; width:100%; padding:20px;}
+.modal-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+.modal-header h3{font-family:var(--font-pixel); font-size:12px; line-height:1.5;}
+.modal-body{display:flex; flex-direction:column; gap:14px; line-height:1.5;}
+.settings-row{display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border);}
+.credits-body p{margin:0 0 10px;}
+.toggle{width:46px; height:26px; border-radius:999px; background:var(--inactive); position:relative; flex-shrink:0;}
+.toggle.on{background:var(--accent);}
+.toggle::after{content:''; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:var(--cream); transition:left .2s;}
+.toggle.on::after{left:23px;}
+.toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--bg-panel-2); border:2px solid var(--border); padding:10px 18px; border-radius:8px; opacity:0; pointer-events:none; transition:all .25s; z-index:100; font-weight:700; max-width:90%; text-align:center;}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <section id="screen-menu" class="screen">
+    <div class="menu-layout">
+      <div class="menu-left">
+        <div class="menu-title">🌸 FLOWER<br>SHOP</div>
+        <div class="menu-sub2">4.1</div>
+        <div class="menu-subtitle">Стань лучшим флористом города</div>
+        <div class="menu-buttons">
+          <button class="btn btn-primary" id="btn-start" onclick="startGame()">Начать игру</button>
+          <button class="btn btn-secondary" onclick="openModal('settings')">Настройки</button>
+          <button class="btn btn-secondary" onclick="openSaveModal()">💾 Сохранение</button>
+          <button class="btn btn-secondary" onclick="openModal('credits')">Авторы</button>
+          <button class="btn btn-secondary" onclick="openModal('exit')">Выход</button>
+        </div>
+      </div>
+      <div class="menu-right"><canvas id="menu-canvas" width="160" height="120"></canvas></div>
+    </div>
+    <div class="menu-version">Версия 4.1 · автор ninja</div>
+  </section>
+
+  <section id="screen-hub" class="screen">
+    <div class="hub-layout">
+      <nav class="hub-sidebar" id="hub-sidebar"></nav>
+      <div class="hub-main">
+        <div class="hub-topbar">
+          <div class="hud-chip">☀️ <span id="hud-day">День 1</span></div>
+          <div class="hud-chip">🪙 <span id="hud-coins">700</span></div>
+          <div class="hud-chip" id="hud-left" style="display:none">👥 <span id="hud-left-n">0</span></div>
+          <div class="hud-rep">
+            ❤️
+            <div class="hud-rep-bar"><div class="hud-rep-fill" id="hud-rep-fill"></div></div>
+            <span class="hud-rep-text" id="hud-rep-text">Ур.1 · 0/100</span>
+          </div>
+          <button class="icon-btn" onclick="openModal('settings')">⚙️</button>
+        </div>
+        <div class="hub-stage" id="hub-stage">
+          <canvas id="hub-bg" width="160" height="100"></canvas>
+          <div class="hub-counter"></div>
+          <div class="hub-content" id="hub-content"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-assemble" class="screen">
+    <div class="subheader"><button class="icon-btn" onclick="showScreen('hub')">←</button><h2>СБОРКА</h2><div class="mini-status"></div></div>
+    <div class="order-banner" id="order-banner"></div>
+    <div class="assemble-layout">
+      <div class="slots-col" id="slots-col"></div>
+      <div class="preview-col" id="preview-col"></div>
+    </div>
+  </section>
+
+  <section id="screen-result" class="screen">
+    <div class="subheader"><button class="icon-btn" onclick="finishResult()">←</button><h2>РЕЗУЛЬТАТ</h2></div>
+    <div class="result-scene" id="result-scene"></div>
+  </section>
+
+  <section id="screen-stock" class="screen">
+    <div class="subheader"><button class="icon-btn" onclick="showScreen('hub')">←</button><h2>СКЛАД</h2><div class="mini-status"></div></div>
+    <div class="stock-note muted" id="stock-note"></div>
+    <div class="stock-grid" id="stock-grid"></div>
+  </section>
+
+  <section id="screen-map" class="screen">
+    <div class="subheader"><button class="icon-btn" onclick="showScreen('hub')">←</button><h2>КАРТА</h2><div class="mini-status"></div></div>
+    <div class="map-wrap"><div class="map-area" id="map-area"></div>
+      <div class="map-legend" id="map-legend"></div>
+    </div>
+  </section>
+
+  <section id="screen-shopUpgrades" class="screen">
+    <div class="subheader"><button class="icon-btn" onclick="showScreen('hub')">←</button><h2>МАГАЗИН</h2><div class="mini-status"></div></div>
+    <div class="upgrades-grid" id="upgrades-grid"></div>
+  </section>
+
+  <section id="screen-quests" class="screen">
+    <div class="subheader"><button class="icon-btn" onclick="showScreen('hub')">←</button><h2>ЗАДАНИЯ</h2><div class="mini-status"></div></div>
+    <div class="tab-row" id="quests-tabs"></div>
+    <div class="quests-list" id="quests-list"></div>
+  </section>
+
+
+  <section id="screen-delivery" class="screen">
+    <div class="subheader"><button class="icon-btn" onclick="showScreen('hub')">←</button><h2>ДОСТАВКА</h2><div class="mini-status"></div></div>
+    <div class="delivery-layout">
+      <div class="del-map-col"><div class="map-area" id="del-map"></div><div class="map-legend" id="del-route"></div></div>
+      <div class="del-side" id="del-side"></div>
+    </div>
+  </section>
+
+  <section id="screen-regulars" class="screen">
+    <div class="subheader"><button class="icon-btn" onclick="showScreen('hub')">←</button><h2>ДРУЗЬЯ</h2><div class="mini-status"></div></div>
+    <div class="reg-grid" id="reg-grid"></div>
+  </section>
+
+
+  <section id="screen-bank" class="screen">
+    <div class="subheader"><button class="icon-btn" onclick="showScreen('hub')">←</button><h2>БАНК</h2><div class="mini-status"></div></div>
+    <div class="bank-wrap" id="bank-wrap"></div>
+  </section>
+
+</div>
+
+<div class="modal-overlay" id="modal-settings" onclick="if(event.target===this) closeModal('settings')">
+  <div class="modal">
+    <div class="modal-header"><h3>НАСТРОЙКИ</h3><button class="icon-btn" onclick="closeModal('settings')">✕</button></div>
+    <div class="modal-body">
+      <div class="settings-row"><span>Звуки</span><div class="toggle" id="toggle-sound" onclick="toggleSound()"></div></div>
+      <div class="settings-row"><span>Музыка</span><div class="toggle" id="toggle-music" onclick="toggleMusic()"></div></div>
+      <div class="settings-row"><span>Подсказки</span><div class="toggle" id="toggle-tips" onclick="toggleTips()"></div></div>
+      <button class="btn btn-secondary" onclick="coachReset()">Пройти обучение заново</button>
+      <button class="btn btn-secondary" onclick="openSaveModal()">💾 Сохранение и перенос прогресса</button>
+      <button class="btn btn-danger" id="btn-reset" onclick="confirmReset()">Сбросить прогресс</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-credits" onclick="if(event.target===this) closeModal('credits')">
+  <div class="modal">
+    <div class="modal-header"><h3>АВТОРЫ</h3><button class="icon-btn" onclick="closeModal('credits')">✕</button></div>
+    <div class="modal-body credits-body">
+      <p><strong>FlowerShop 4.1</strong> — пиксельная игра о цветочном магазине.</p>
+      <p>Вся графика нарисована в коде по пиксельной сетке (без чужих картинок).</p>
+      <p>Дизайн интерфейса и концепция — по референсу заказчика.</p>
+      <p>Автор — ninja.</p>
+      <p style="opacity:.7;">Маленькие цветы — большие эмоции. 🌸</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-exit" onclick="if(event.target===this) closeModal('exit')">
+  <div class="modal">
+    <div class="modal-header"><h3>ВЫХОД</h3><button class="icon-btn" onclick="closeModal('exit')">✕</button></div>
+    <div class="modal-body">
+      <p>Спасибо за игру! 🌷 Прогресс сохранён — возвращайтесь скорее.</p>
+      <button class="btn btn-primary" onclick="closeModal('exit')">Вернуться в игру</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-save" onclick="if(event.target===this) closeModal('save')">
+  <div class="modal">
+    <div class="modal-header"><h3>СОХРАНЕНИЕ</h3><button class="icon-btn" onclick="closeModal('save')">✕</button></div>
+    <div class="modal-body">
+      <p class="info-note" id="save-info"></p>
+      <textarea id="save-code" class="save-code" rows="5" spellcheck="false" placeholder="Здесь появится код сохранения. Чтобы загрузить прогресс — вставь код сюда."></textarea>
+      <div class="info-actions">
+        <button class="btn btn-secondary btn-sm" onclick="saveShowCode()">Получить код</button>
+        <button class="btn btn-secondary btn-sm" onclick="saveCopyCode()">Скопировать</button>
+        <button class="btn btn-secondary btn-sm" onclick="saveDownload()">Скачать файл</button>
+      </div>
+      <div class="info-actions">
+        <button class="btn btn-primary btn-sm" id="btn-save-import" onclick="saveImportFromText()">Загрузить из кода</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('save-file').click()">Загрузить файл</button>
+        <input type="file" id="save-file" accept=".txt,.json,text/plain,application/json" style="display:none" onchange="saveImportFromFile(this)">
+      </div>
+      <p class="info-note">Прогресс сохраняется автоматически в этом браузере. Код или файл нужны, чтобы перенести игру на другое устройство или в другой браузер.</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-end">
+  <div class="modal">
+    <div class="modal-header"><h3 id="end-title">КОНЕЦ</h3></div>
+    <div class="modal-body">
+      <p id="end-text"></p>
+      <button class="btn btn-primary" id="end-btn" onclick="endModalAction()">Ок</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-story">
+  <div class="modal">
+    <div class="modal-header"><h3 id="story-title">ИСТОРИЯ</h3></div>
+    <div class="modal-body">
+      <p id="story-text"></p>
+      <p id="story-reward" style="font-weight:800"></p>
+      <button class="btn btn-primary" onclick="closeStory()">Здорово!</button>
+    </div>
+  </div>
+</div>
+
+<div class="fx-layer" id="fx-layer"></div>
+<div class="coach" id="coach"><div class="coach-text" id="coach-text"></div><div class="coach-actions"><button class="btn btn-primary" onclick="coachNext()">Понятно</button><button class="btn btn-secondary" onclick="coachSkip()">Пропустить обучение</button></div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= PIXEL ENGINE ================= */
+function shadeColor(hex, amt){
+  var c = hex.replace('#','');
+  if(c.length===3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+  var num = parseInt(c,16);
+  var r = Math.max(0,Math.min(255,(num>>16)+amt));
+  var g = Math.max(0,Math.min(255,((num>>8)&255)+amt));
+  var b = Math.max(0,Math.min(255,(num&255)+amt));
+  return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+}
+function pixelSprite(pattern, palette, ps){
+  ps = ps || 4;
+  var rows = pattern.length, cols = pattern[0].length;
+  var w = cols*ps, h = rows*ps, rects = '';
+  for(var r=0;r<rows;r++){
+    for(var c=0;c<cols;c++){
+      var v = pattern[r][c];
+      if(!v) continue;
+      var col = palette[v];
+      if(!col) continue;
+      rects += '<rect x="'+(c*ps)+'" y="'+(r*ps)+'" width="'+ps+'" height="'+ps+'" fill="'+col+'"/>';
+    }
+  }
+  return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">'+rects+'</svg>';
+}
+/* 9x8 flower heads: 1=petal 2=center 3=petal shade 4=stem 5=leaf */
+var FLOWER_HEADS = {
+  rose:[[0,0,1,1,1,1,1,0,0],[0,1,1,3,3,3,1,1,0],[1,1,3,1,1,1,3,1,1],[1,3,1,1,3,1,1,3,1],[1,3,1,3,3,3,1,3,1],[0,1,3,1,1,1,3,1,0],[0,1,1,3,3,3,1,1,0],[0,0,1,1,1,1,1,0,0]],
+  tulip:[[0,1,0,0,1,0,0,1,0],[0,1,1,0,1,0,1,1,0],[0,1,1,1,1,1,1,1,0],[0,1,1,3,1,3,1,1,0],[0,1,1,3,1,3,1,1,0],[0,0,1,1,1,1,1,0,0],[0,0,0,1,1,1,0,0,0],[0,0,0,5,5,5,0,0,0]],
+  lily:[[0,0,0,0,1,0,0,0,0],[0,1,0,0,1,0,0,1,0],[0,0,1,1,1,1,1,0,0],[1,1,3,1,2,1,3,1,1],[0,1,1,2,2,2,1,1,0],[0,0,1,1,2,1,1,0,0],[0,1,0,1,1,1,0,1,0],[0,0,0,5,5,5,0,0,0]],
+  chrysanthemum:[[0,0,1,3,1,3,1,0,0],[0,1,3,1,1,1,3,1,0],[1,3,1,1,2,1,1,3,1],[3,1,1,2,2,2,1,1,3],[1,3,1,1,2,1,1,3,1],[0,1,3,1,1,1,3,1,0],[0,0,1,3,1,3,1,0,0],[0,0,0,5,5,5,0,0,0]],
+  gypsophila:[[0,1,0,0,0,0,1,0,0],[0,0,0,1,0,0,0,0,1],[1,0,0,0,0,1,0,0,0],[0,0,1,0,1,0,0,1,0],[0,1,0,0,0,1,0,0,0],[0,0,0,1,0,0,1,0,0],[0,5,0,0,4,0,0,5,0],[0,0,5,0,4,0,5,0,0]],
+  sunflower:[[0,0,1,0,1,0,1,0,0],[0,1,1,1,1,1,1,1,0],[1,1,2,2,2,2,2,1,1],[1,1,2,2,2,2,2,1,1],[1,1,2,2,2,2,2,1,1],[0,1,1,1,1,1,1,1,0],[0,0,1,0,1,0,1,0,0],[0,0,5,5,4,5,5,0,0]],
+  eustoma:[[0,0,1,1,0,1,1,0,0],[0,1,1,1,1,1,1,1,0],[1,1,3,1,2,1,3,1,1],[1,1,1,2,2,2,1,1,1],[0,1,1,1,2,1,1,1,0],[0,0,1,1,1,1,1,0,0],[0,0,0,1,1,1,0,0,0],[0,0,0,5,5,5,0,0,0]],
+  peony:[[0,0,1,1,1,1,1,0,0],[0,1,1,3,1,3,1,1,0],[1,1,3,1,1,1,3,1,1],[1,3,1,1,2,1,1,3,1],[1,1,3,1,1,1,3,1,1],[0,1,1,3,1,3,1,1,0],[0,0,1,1,1,1,1,0,0],[0,0,0,5,5,5,0,0,0]],
+  iris:[[0,0,0,0,1,0,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,1,1,3,1,1,0,0],[0,1,1,1,3,1,1,1,0],[1,1,0,1,2,1,0,1,1],[1,0,0,1,1,1,0,0,1],[0,0,0,1,1,1,0,0,0],[0,0,0,5,4,5,0,0,0]],
+  carnation:[[0,1,0,1,0,1,0,1,0],[1,1,1,1,1,1,1,1,1],[1,3,1,1,3,1,1,3,1],[1,1,1,3,1,3,1,1,1],[0,1,1,1,1,1,1,1,0],[0,0,1,3,1,3,1,0,0],[0,0,0,1,1,1,0,0,0],[0,0,0,5,5,5,0,0,0]],
+  greens:[[0,0,0,0,5,0,0,0,0],[0,0,5,0,5,0,5,0,0],[0,5,5,5,4,5,5,5,0],[0,0,5,4,4,4,5,0,0],[0,5,5,5,4,5,5,5,0],[0,0,5,4,4,4,5,0,0],[0,0,0,5,4,5,0,0,0],[0,0,0,0,4,0,0,0,0]]
+};
+var STEM_ROWS = [[0,0,0,0,4,0,0,0,0],[0,0,0,5,4,0,0,0,0],[0,0,0,0,4,5,0,0,0],[0,0,0,0,4,0,0,0,0]];
+function flowerIcon(f, size, withStem){
+  size = size || 36;
+  var pat = FLOWER_HEADS[f.id].slice();
+  if(withStem) pat = pat.concat(STEM_ROWS);
+  var pal = {1:f.color, 2:f.center, 3:shadeColor(f.color,-45), 4:'#3f7d3a', 5:'#5fa14f'};
+  return pixelSprite(pat, pal, size/9);
+}
+/* people: 12x16 */
+var PERSON_BASE = [
+  [0,0,0,1,1,1,1,1,1,0,0,0],
+  [0,0,1,1,1,1,1,1,1,1,0,0],
+  [0,0,1,1,2,2,2,2,1,1,0,0],
+  [0,0,1,2,2,2,2,2,2,1,0,0],
+  [0,0,0,2,4,2,2,4,2,0,0,0],
+  [0,0,0,2,2,2,2,2,2,0,0,0],
+  [0,0,0,0,2,2,2,2,0,0,0,0],
+  [0,0,3,3,3,3,3,3,3,3,0,0],
+  [0,3,3,3,3,3,3,3,3,3,3,0],
+  [0,3,3,3,3,3,3,3,3,3,3,0],
+  [0,3,3,6,3,3,3,3,6,3,3,0],
+  [0,2,3,3,3,3,3,3,3,3,2,0],
+  [0,0,0,3,3,3,3,3,3,0,0,0],
+  [0,0,0,7,7,7,7,7,7,0,0,0],
+  [0,0,0,7,7,0,0,7,7,0,0,0],
+  [0,0,0,8,8,0,0,8,8,0,0,0]
+];
+function personPattern(hairStyle){
+  var p = PERSON_BASE.map(function(r){return r.slice();});
+  if(hairStyle===1){
+    p[4][2]=1; p[4][9]=1; p[5][2]=1; p[5][9]=1; p[6][3]=1; p[6][8]=1; p[3][2]=1; p[3][9]=1;
+  }
+  return p;
+}
+function personSVG(o){
+  o = o || {};
+  var outfit = o.outfit || '#3a4066';
+  var pal = {1:o.hair||'#3a2a1e', 2:o.skin||'#f0c39a', 3:outfit, 4:'#2a2030', 6:shadeColor(outfit,-30), 7:'#2b2f4a', 8:'#1c1822'};
+  return pixelSprite(personPattern(o.hairStyle||0), pal, (o.size||96)/12);
+}
+function conePattern(){
+  var rows = [], H = 12, W = 17;
+  for(var y=0;y<H;y++){
+    var hw = Math.max(1, 8 - Math.floor(y*0.62));
+    var row = [];
+    for(var x=0;x<W;x++){
+      var d = x-8;
+      if(Math.abs(d)<=hw){ row.push(Math.abs(d)===hw?3:(x===8?2:1)); } else row.push(0);
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+var WRAP_STYLE = {
+  soft:{wrap:'#ef8fb0', bow:'#f6f1e3'}, bright:{wrap:'#d9a066', bow:'#e0435f'},
+  elegant:{wrap:'#59608a', bow:'#b79cf0'}, romantic:{wrap:'#c0506a', bow:'#f6f1e3'}
+};
+function renderBouquetPreview(asm, style){
+  var ws = WRAP_STYLE[style] || WRAP_STYLE.soft;
+  var wrapPal = {1:ws.wrap, 2:shadeColor(ws.wrap,-25), 3:shadeColor(ws.wrap,-45)};
+  var layout = [
+    {id:asm.filler, size:30, pts:[[24,92],[156,92]]},
+    {id:asm.accent, size:38, pts:[[62,40],[118,40]]},
+    {id:asm.main, size:46, pts:[[90,66],[56,82],[124,82]]}
+  ];
+  var items = '';
+  for(var i=0;i<layout.length;i++){
+    var L = layout[i];
+    if(!L.id) continue;
+    var f = getFlower(L.id);
+    for(var j=0;j<L.pts.length;j++){
+      items += '<div class="bq-item" style="left:'+L.pts[j][0]+'px;top:'+L.pts[j][1]+'px;">'+flowerIcon(f,L.size,false)+'</div>';
+    }
+  }
+  var bow = pixelSprite([[1,0,0,0,1],[1,1,0,1,1],[0,1,1,1,0],[1,1,0,1,1],[1,0,0,0,1]], {1:ws.bow}, 6);
+  return '<div class="bouquet-preview-box">' +
+    '<div class="bq-wrap">'+pixelSprite(conePattern(), wrapPal, 10)+'</div>' + items +
+    '<div class="bq-bow">'+bow+'</div></div>';
+}
+
+/* ================= CANVAS SCENES ================= */
+function rng(seed){ var s = seed; return function(){ s = (s*1664525+1013904223)%4294967296; return s/4294967296; }; }
+var FONT35 = {
+  F:['111','100','110','100','100'], L:['100','100','100','100','111'], O:['111','101','101','101','111'],
+  W:['101','101','101','111','101'], E:['111','100','110','100','111'], R:['110','101','110','101','101'], S:['111','100','111','001','111']
+};
+function miniFlower(g, x, y, col, cen){
+  g.fillStyle = '#3f7d3a'; g.fillRect(x+2,y+5,1,3);
+  g.fillStyle = col;
+  [[2,0],[1,1],[2,1],[3,1],[0,2],[1,2],[3,2],[4,2],[1,3],[2,3],[3,3],[2,4]].forEach(function(p){ g.fillRect(x+p[0],y+p[1],1,1); });
+  g.fillStyle = cen || '#f6c85a'; g.fillRect(x+2,y+2,1,1);
+}
+function drawMenuScene(canvas){
+  var W = 160, H = 120;
+  canvas.width = W; canvas.height = H;
+  var g = canvas.getContext('2d');
+  g.imageSmoothingEnabled = false;
+  function R(x,y,w,h,c){ g.fillStyle = c; g.fillRect(x,y,w,h); }
+  var rnd = rng(11);
+  var bands = ['#1b1740','#241d4d','#2e2459','#442a68','#6a3470','#93406f','#bd4f68','#e0695f','#f08a5d'];
+  var bh = 10, i, x, y;
+  for(i=0;i<bands.length;i++) R(0,i*bh,W,bh,bands[i]);
+  for(i=1;i<bands.length;i++){
+    for(x=0;x<W;x+=2){ R(x+(i%2),i*bh-1,1,1,bands[i]); R(x+((i+1)%2),i*bh,1,1,bands[i-1]); }
+  }
+  for(i=0;i<34;i++){
+    var sx = Math.floor(rnd()*W), sy = Math.floor(rnd()*44);
+    R(sx,sy,1,1, rnd()>0.7 ? '#9fa8ff' : '#f6f1e3');
+  }
+  /* moon */
+  var mx = 132, my = 18;
+  for(y=-7;y<=7;y++) for(x=-7;x<=7;x++){ if(x*x+y*y<=45) R(mx+x,my+y,1,1,'#f6efd2'); }
+  R(mx-3,my-2,2,2,'#d9d0aa'); R(mx+2,my+2,2,2,'#d9d0aa'); R(mx-1,my+3,1,1,'#d9d0aa');
+  /* back skyline */
+  var heights = [26,38,22,44,30,20,40,28,34,24,36,18];
+  var bx = 0;
+  for(i=0;i<heights.length;i++){
+    var bw = 12 + (i%3)*3;
+    R(bx, 92-heights[i], bw, heights[i], '#2b2147');
+    R(bx, 92-heights[i], bw, 1, '#3a2e5c');
+    for(var wy=92-heights[i]+4; wy<88; wy+=6) for(var wx=bx+2; wx<bx+bw-2; wx+=4){
+      if(rnd()>0.62) R(wx,wy,2,2, rnd()>0.5 ? '#f7c948' : '#6d5a9a');
+    }
+    bx += bw + 1;
+  }
+  /* ground */
+  R(0,92,W,4,'#4a3d5a'); R(0,92,W,1,'#6a5a80');
+  R(0,96,W,24,'#2d2438');
+  for(y=98;y<H;y+=4){ for(x=((y/4)%2)*4; x<W; x+=8){ R(x,y,6,1,'#3a2f48'); R(x+7,y-1,1,3,'#3a2f48'); } }
+  /* shop */
+  var sxp = 28, sw = 104;
+  R(sxp,41,sw,51,'#6b3f3c');
+  for(y=41;y<92;y+=4){ R(sxp,y,sw,1,'#5a3330'); for(x=sxp+(((y-41)/4)%2)*4; x<sxp+sw; x+=8) R(x,y,1,4,'#5a3330'); }
+  R(sxp-4,36,sw+8,5,'#3a2a2a'); R(sxp-4,36,sw+8,1,'#5a4040');
+  /* sign */
+  R(sxp+26,19,52,16,'#2a1d1a'); R(sxp+26,19,52,1,'#c99a63'); R(sxp+26,34,52,1,'#c99a63'); R(sxp+26,19,1,16,'#c99a63'); R(sxp+77,19,1,16,'#c99a63');
+  var word = 'FLOWERS', tx = sxp+38, ty = 24;
+  for(i=0;i<word.length;i++){
+    var gl = FONT35[word[i]];
+    for(var r=0;r<5;r++) for(var cc=0;cc<3;cc++) if(gl[r][cc]==='1') R(tx+i*4+cc, ty+r, 1, 1, '#f6d27a');
+  }
+  R(sxp+30,35,1,2,'#c99a63'); R(sxp+73,35,1,2,'#c99a63');
+  /* awning */
+  for(i=0;i<sw+4;i+=8){
+    var col = (i/8)%2===0 ? '#ef7fa4' : '#f6f1e3';
+    R(sxp-2+i,47,8,10,col);
+    R(sxp-1+i,57,6,1,col); R(sxp+i,58,4,1,col);
+  }
+  R(sxp-2,47,sw+4,1,'#f9c6d6');
+  g.globalAlpha = 0.28; R(sxp-2,59,sw+4,4,'#000000'); g.globalAlpha = 1;
+  /* windows */
+  function windowAt(wx){
+    var wy = 64, ww = 30, wh = 22;
+    R(wx-2,wy-2,ww+4,wh+4,'#3a2218');
+    R(wx,wy,ww,wh,'#f0a85a');
+    for(var k=0;k<wh;k+=2) R(wx,wy+k,ww,1,'#f5b96c');
+    R(wx,wy,ww,5,'#f7c948');
+    R(wx+14,wy,2,wh,'#3a2218'); R(wx,wy+10,ww,2,'#3a2218');
+    R(wx,wy+15,ww,2,'#6b4423');
+    miniFlower(g,wx+3,wy+8,'#e0507a','#f6c85a');
+    miniFlower(g,wx+19,wy+8,'#b48ee0','#f6c85a');
+    miniFlower(g,wx+10,wy+9,'#f6f1e3','#f6c85a');
+    R(wx-3,wy+wh+2,ww+6,5,'#5a381c'); R(wx-3,wy+wh+2,ww+6,1,'#7a5230');
+    var cols = ['#ef7fa4','#f7c948','#f6f1e3','#e0507a','#b48ee0','#ef7fa4'];
+    for(k=0;k<6;k++) R(wx-2+k*5,wy+wh+1,3,2,cols[k]);
+  }
+  windowAt(sxp+7); windowAt(sxp+sw-37);
+  /* door */
+  var dx = sxp+42;
+  R(dx-2,58,24,34,'#3a2218'); R(dx,60,20,32,'#6b4423');
+  R(dx+3,63,14,12,'#f0a85a'); R(dx+9,63,2,12,'#3a2218'); R(dx+3,68,14,1,'#3a2218');
+  R(dx+3,78,14,11,'#5a381c'); R(dx+3,78,14,1,'#7a5230');
+  R(dx+16,80,2,2,'#f7c948');
+  R(dx-3,92,26,2,'#5a4a52');
+  /* barrels */
+  function barrel(bx){
+    R(bx,80,12,12,'#7a5230'); R(bx,83,12,1,'#3a2218'); R(bx,88,12,1,'#3a2218'); R(bx,80,12,1,'#9a6a40');
+    miniFlower(g,bx+0,70,'#ef7fa4','#f6c85a'); miniFlower(g,bx+7,68,'#f7c948','#7a5a3a'); miniFlower(g,bx+3,73,'#e14a63','#f6c85a');
+  }
+  barrel(12); barrel(136);
+  /* lamps */
+  function lamp(lx){
+    R(lx,56,2,36,'#241c30'); R(lx-3,52,8,5,'#241c30'); R(lx-1,54,4,2,'#ffe9a8');
+    for(var q=1;q<=9;q++){ g.globalAlpha = 0.055; R(lx+1-q*1.5, 55-q*1.5, q*3, q*3, '#ffd77a'); }
+    g.globalAlpha = 1;
+  }
+  lamp(5); lamp(153);
+  g.globalAlpha = 0.1; R(sxp+5,96,34,6,'#f0a85a'); R(sxp+sw-39,96,34,6,'#f0a85a'); R(dx-2,96,24,4,'#f0a85a'); g.globalAlpha = 1;
+}
+function drawShopInterior(canvas){
+  var W = 160, H = 100;
+  canvas.width = W; canvas.height = H;
+  var g = canvas.getContext('2d');
+  g.imageSmoothingEnabled = false;
+  function R(x,y,w,h,c){ g.fillStyle = c; g.fillRect(x,y,w,h); }
+  var rnd = rng(5), x, y, i;
+  R(0,0,W,H,'#6a4630');
+  for(x=0;x<W;x+=8){ R(x,0,1,78,'#5a3a26'); }
+  for(y=0;y<78;y+=2){ if(rnd()>0.5) R(Math.floor(rnd()*W),y,3,1,'#74503a'); }
+  R(0,0,W,8,'#4a2f20'); R(0,8,W,1,'#85583a');
+  R(0,70,W,2,'#3a2418');
+  R(0,72,W,28,'#3b2a1e');
+  for(y=76;y<H;y+=6) R(0,y,W,1,'#2f2016');
+  /* window */
+  R(62,14,36,34,'#3a2218'); R(64,16,32,30,'#26285a');
+  for(i=0;i<14;i++) R(65+Math.floor(rnd()*30),17+Math.floor(rnd()*26),1,1,'#f6f1e3');
+  R(78,16,3,30,'#3a2218'); R(64,30,32,3,'#3a2218');
+  for(y=-5;y<=5;y++) for(x=-5;x<=5;x++) if(x*x+y*y<=22) R(88+x,24+y,1,1,'#f6efd2');
+  for(y=-5;y<=5;y++) for(x=-5;x<=5;x++) if((x-2)*(x-2)+(y-1)*(y-1)<=18) R(88+x,24+y,1,1,'#26285a');
+  R(60,48,40,3,'#8a5a34');
+  /* shelves */
+  function shelf(sx0,sy){
+    R(sx0,sy,46,3,'#8a5a34'); R(sx0,sy+3,46,1,'#4a2f20');
+    var cols = ['#e0507a','#f7c948','#b48ee0','#ef7fa4','#f6f1e3','#7f6fd0'];
+    for(var k=0;k<5;k++){
+      R(sx0+3+k*9,sy-5,6,5,'#b5654a'); R(sx0+3+k*9,sy-5,6,1,'#cf7b5c');
+      miniFlower(g,sx0+3+k*9,sy-12,cols[(k+sx0)%cols.length],'#f6c85a');
+    }
+  }
+  shelf(8,34); shelf(8,58); shelf(108,34); shelf(108,58);
+  /* lamps */
+  function hang(lx){
+    R(lx,0,1,12,'#241c30'); R(lx-5,12,11,4,'#c99a63'); R(lx-3,16,7,2,'#ffe9a8');
+    for(var q=1;q<=10;q++){ g.globalAlpha = 0.045; R(lx-q*2, 14-q, q*4+1, q*3, '#ffd77a'); }
+    g.globalAlpha = 1;
+  }
+  hang(40); hang(120);
+  /* chalkboard */
+  R(100,8,0,0,'#000');
+}
+
+/* ================= DATA ================= */
+var FLOWERS = [
+  {id:'rose', name:'Роза', acc:'розы', price:50, color:'#e0507a', center:'#f6c85a', shelf:4, styles:['romantic','bright']},
+  {id:'tulip', name:'Тюльпан', acc:'тюльпаны', price:40, color:'#ef7fa4', center:'#f6c85a', shelf:3, styles:['soft','bright']},
+  {id:'lily', name:'Лилия', acc:'лилии', price:60, color:'#f6f1e3', center:'#f6c85a', shelf:4, styles:['elegant','soft']},
+  {id:'chrysanthemum', name:'Хризантема', acc:'хризантемы', price:45, color:'#b48ee0', center:'#f6c85a', shelf:5, styles:['elegant','bright']},
+  {id:'gypsophila', name:'Гипсофила', acc:'гипсофилу', price:35, color:'#fbfaf6', center:'#dcd6c4', shelf:6, styles:['soft','elegant']},
+  {id:'sunflower', name:'Подсолнух', acc:'подсолнухи', price:55, color:'#f7c948', center:'#7a5a3a', shelf:3, styles:['bright']},
+  {id:'eustoma', name:'Эустома', acc:'эустому', price:50, color:'#e9a8cb', center:'#f6c85a', shelf:4, styles:['soft','romantic']},
+  {id:'peony', name:'Пион', acc:'пионы', price:70, color:'#f3a7bb', center:'#f6c85a', shelf:3, styles:['romantic','soft']},
+  {id:'iris', name:'Ирис', acc:'ирисы', price:60, color:'#7f6fd0', center:'#f6c85a', shelf:3, styles:['elegant']},
+  {id:'carnation', name:'Гвоздика', acc:'гвоздики', price:40, color:'#e14a63', center:'#f6c85a', shelf:5, styles:['bright']}
+];
+var GREENS = {id:'greens', name:'Зелень', acc:'зелень', price:0, color:'#5fa14f', center:'#3f7d3a', shelf:99, styles:[]};
+function getFlower(id){
+  if(id==='greens') return GREENS;
+  for(var i=0;i<FLOWERS.length;i++) if(FLOWERS[i].id===id) return FLOWERS[i];
+  return null;
+}
+var STYLES = {
+  soft:{label:'нежное', phrase:'Что-нибудь нежное.'},
+  bright:{label:'яркое', phrase:'Поярче и повеселее.'},
+  elegant:{label:'строгое', phrase:'Строгое и изысканное.'},
+  romantic:{label:'романтичное', phrase:'Романтичное, страстное.'}
+};
+var STYLE_KEYS = ['soft','bright','elegant','romantic'];
+var OCCASIONS = {
+  soft:['Нужен букет для мамы.','Навещаю подругу в больнице.','Хочу порадовать бабушку.'],
+  bright:['Иду на день рождения к другу.','У коллеги сегодня праздник.','Хочу поднять настроение сестре.'],
+  elegant:['Нужен букет на деловую встречу.','Дарю учителю на выпускном.','Ужин с партнёрами, нужно солидно.'],
+  romantic:['Хочу признаться в чувствах.','У нас годовщина свадьбы!','Нужно помириться с любимым человеком.']
+};
+var AVOIDABLE = ['rose','lily','peony','sunflower','tulip','iris'];
+var CLIENT_TYPES = {
+  normal:{label:'', patience:1, pay:1, rep:1, w:55},
+  rush:{label:'Спешит', patience:0.55, pay:1.15, rep:1, w:20},
+  calm:{label:'Не торопится', patience:1.6, pay:0.9, rep:1, w:15},
+  vip:{label:'VIP', patience:0.8, pay:1.5, rep:2, w:10}
+};
+var SLOT_KEYS = ['main','accent','filler'];
+var SLOTS = {
+  main:{n:3, label:'Главный цветок', hint:'3 стебля'},
+  accent:{n:2, label:'Акцент', hint:'2 стебля'},
+  filler:{n:2, label:'Наполнитель', hint:'2 стебля'}
+};
+var DISTRICTS = [
+  {id:'oldtown', name:'Старый город', reqLevel:1, priceMult:1.0, x:20, y:72},
+  {id:'park', name:'Парковый квартал', reqLevel:2, priceMult:1.15, x:55, y:55},
+  {id:'embankment', name:'Набережная', reqLevel:3, priceMult:1.3, x:80, y:32},
+  {id:'business', name:'Деловой центр', reqLevel:4, priceMult:1.5, x:32, y:22},
+  {id:'suburb', name:'Элитный квартал', reqLevel:5, priceMult:1.7, x:68, y:82}
+];
+var UPGRADES = [
+  {id:'fridge', name:'Холодильная витрина', icon:'🧊', desc:'Цветы живут на 1 день дольше.', cost:700},
+  {id:'helper', name:'Помощник у прилавка', icon:'🧑‍🌾', desc:'Клиенты ждут на 25% дольше.', cost:800},
+  {id:'sign', name:'Яркая вывеска', icon:'🪧', desc:'+15% к репутации за заказы.', cost:600},
+  {id:'supplier', name:'Оптовый поставщик', icon:'🚚', desc:'Закупка дешевле на 15%.', cost:900},
+  {id:'counter', name:'Второй прилавок', icon:'🪑', desc:'Одновременно у прилавка до 4 клиентов.', cost:1200}
+];
+var NAV_ITEMS = [
+  {id:'stock', icon:'📦', label:'Склад'},
+  {id:'delivery', icon:'🚴', label:'Доставка', cond:'delivery'},
+  {id:'regulars', icon:'💞', label:'Друзья'},
+  {id:'map', icon:'🗺️', label:'Карта'},
+  {id:'bank', icon:'🏦', label:'Банк'},
+  {id:'shopUpgrades', icon:'🏪', label:'Магазин'},
+  {id:'quests', icon:'📋', label:'Задания'}
+];
+var CLIENT_NAMES = ['Анна','Мария','Дмитрий','Елена','Сергей','Ольга','Иван','Наталья','Павел','Ксения','Артём','Виктория'];
+var SKIN_TONES = ['#f6d2b0','#e8b48a','#c98a5e','#8d5a3c'];
+var HAIR_COLORS = ['#3a2a1e','#6b4423','#c9a86a','#2c2c2c','#8b3a2a'];
+var OUTFIT_COLORS = ['#3a4066','#5a3a5e','#3a5e52','#5e4a2a','#2a3a5e','#4a2a3e'];
+var BASE_PATIENCE = 60000;
+var SHOP_POS = {x:46,y:48};
+var COURIER_WAGE = 25;
+var EVENTS = [
+  {id:'rain', name:'🌧 Дождливый день', desc:'Клиентов меньше, но они терпеливее; курьеры едут медленнее.', extra:-2, patience:1.3, courier:1.3},
+  {id:'grad', name:'🎓 Выпускные', desc:'Больше строгих заказов, бюджеты выше на 30%.', extra:1, budget:1.3, weights:{elegant:5}},
+  {id:'sale', name:'🏷 Скидка поставщика', desc:'Закупка цветов дешевле на 25%.', wholesale:0.75},
+  {id:'short', name:'📉 Дефицит цветов', desc:'Закупка дороже на 25%, зато клиенты платят на 15% больше.', wholesale:1.25, pay:1.15},
+  {id:'sun', name:'☀️ Солнечная погода', desc:'В моде яркие букеты, курьеры едут быстрее.', weights:{bright:5}, courier:0.8}
+];
+var HOLIDAY = {id:'holiday', name:'🎉 Праздничный наплыв', desc:'Больше клиентов, и все хотят романтичное.', extra:3, weights:{romantic:6}};
+var REGULARS = [
+  {id:'nina', name:'Нина Петровна', fromDay:2, type:'calm', style:'soft', fav:'tulip', budget:300,
+   look:{skin:'#f6d2b0',hair:'#cfcfd6',outfit:'#6b4a7a',hairStyle:1},
+   bio:'Бабушка, которая обожает тюльпаны и никуда не торопится.',
+   greetings:['Здравствуй, милая. Мне бы цветов для внука.','Опять я к тебе! Внук все твои букеты нахваливает.','Помнишь про свадьбу внука? Нужны цветы!','Ну вот и пришла, моя хорошая. Соберёшь что-нибудь?'],
+   chapters:[
+    {title:'Внук поступил', text:'Нина Петровна рассказала, что внук поступил в институт, и угостила вас домашним вареньем.', coins:150},
+    {title:'Предложение', text:'Внук собирается сделать предложение, а Нина Петровна уже выбирает цветы для праздника.', coins:250},
+    {title:'Свадьба внука', text:'Свадьба прошла чудесно! Нина Петровна рассказывает о вашей лавке каждому гостю.', coins:400}],
+   perkText:'клиенты ждут на 10% дольше'},
+  {id:'dima', name:'Дима', fromDay:3, type:'rush', style:'bright', fav:'sunflower', budget:250,
+   look:{skin:'#e8b48a',hair:'#2c2c2c',outfit:'#c2512f',hairStyle:0},
+   bio:'Студент: вечно спешит и вечно без денег.',
+   greetings:['Мне срочно, у меня свидание!','Помните меня? Опять свидание, но уже серьёзное!','Привет! Хочу удивить её на годовщину.','Здорово! Снова за цветами, я теперь при деньгах.'],
+   chapters:[
+    {title:'Первое свидание', text:'Дима вернулся счастливым: свидание удалось, а букет девушке очень понравился.', coins:150},
+    {title:'Подработка', text:'Дима нашёл подработку и говорит, что вы вдохновили его на своё дело.', coins:250},
+    {title:'Годовщина', text:'Дима с девушкой отметили годовщину. Он договорился со знакомым поставщиком о скидке для вас.', coins:400}],
+   perkText:'закупка дешевле на 10%'},
+  {id:'volkova', name:'Госпожа Волкова', fromDay:5, type:'vip', style:'elegant', fav:'iris', budget:450,
+   look:{skin:'#f6d2b0',hair:'#2c2c2c',outfit:'#2a2a4a',hairStyle:1},
+   bio:'Владелица галереи. Ценит строгость и ирисы.',
+   greetings:['Мне нужен безупречный букет.','Снова вы. Ваши ирисы лучшие в городе.','Открытие выставки уже скоро, нужно оформление.','Как обычно, пожалуйста.'],
+   chapters:[
+    {title:'Первое оформление', text:'Волкова осталась довольна и порекомендовала вас подругам из мира искусства.', coins:200},
+    {title:'Открытие галереи', text:'Ваши букеты украсили открытие выставки, о них написали в местной газете.', coins:350},
+    {title:'Постоянный заказчик', text:'Галерея заключила с вами договор на регулярные композиции. Волкова платит щедрее.', coins:500}],
+   perkText:'+10% к оплате за заказы'},
+  {id:'artem', name:'Артём', fromDay:7, type:'normal', style:'romantic', fav:'rose', budget:400,
+   look:{skin:'#c98a5e',hair:'#3a2a1e',outfit:'#3a5e52',hairStyle:0},
+   bio:'Тихий романтик. Всегда берёт розы.',
+   greetings:['Добрый день. Мне нужны цветы... для одной особенной девушки.','Она сказала «может быть». Нужен ещё букет!','Я решился. Помогите выбрать лучшие розы.','Привет! Опять розы, теперь уже для жены.'],
+   chapters:[
+    {title:'Знакомство', text:'Артём признался, что познакомился с девушкой неподалёку и теперь часто заходит за цветами.', coins:150},
+    {title:'Решение', text:'Девушка согласилась на второе свидание! Артём в восторге и благодарит за советы.', coins:300},
+    {title:'Предложение руки', text:'Артём сделал предложение, и она сказала «да»! Он обещает пригласить вас на свадьбу.', coins:500}],
+   perkText:'+10% к репутации'}
+];
+UPGRADES.push(
+  {id:'courier2', name:'Второй курьер', icon:'🚴', desc:'Ещё один курьер для доставки (доставка с Ур.2).', cost:900},
+  {id:'courier3', name:'Третий курьер', icon:'🚴', desc:'Третий курьер. Нужен второй.', cost:1400},
+  {id:'scooter', name:'Электросамокаты', icon:'🛴', desc:'Курьеры едут на 25% быстрее.', cost:800}
+);
+
+/* ================= STATE ================= */
+function defaultState(){
+  return {
+    screen:'menu', started:false, day:1, coins:700, reputation:0, won:false,
+    phase:'morning', stock:{}, counter:[], spawnRemaining:0, spawnTimer:0, nextClientId:1,
+    activeClientId:null, assembly:{main:null,accent:null,filler:null}, lastResult:null,
+    dayStats:{served:0,lost:0,income:0,spent:0,starsSum:0,delivered:0}, daySummary:null,
+    forecast:null,
+    upgrades:{fridge:false,helper:false,sign:false,supplier:false,counter:false,courier2:false,courier3:false,scooter:false,franchise:false},
+    settings:{sound:true,music:true},
+    quests:[], weeklyQuests:[], monthlyQuests:[], weeklyKey:null, monthlyKey:null,
+    usedFlowerTypesToday:[], servedToday:0, incomeToday:0, threeStarsToday:0,
+    weeklyServed:0, weeklyIncome:0, weeklyThreeStars:0, weeklyRep:0,
+    monthlyServed:0, monthlyIncome:0, monthlyThreeStars:0, monthlyRep:0,
+    clientsServedTotal:0,
+    deliveryQueue:[], parcels:[], couriers:[], deliverySel:[], nextParcelId:1,
+    regulars:{}, regularsToday:[], weeklyDeliveries:0, monthlyDeliveries:0,
+    loan:0, loanTaken:false, warehouse:0, decor:{garland:false,paint:false,clock:false,vines:false}, adToday:false,
+    savedAt:0, goalsClaimed:{}, totalIncome:0, totalThree:0, totalDeliveries:0, rank1Count:0, tutorial:{off:false,seen:{}}
+  };
+}
+var SAVE_KEY = 'flowershop_save_v2';
+function mergeSave(p){
+  var def=defaultState(), d=defaultState(), k;
+  for(k in p){ d[k]=p[k]; }
+  d.upgrades = Object.assign(defaultState().upgrades, p.upgrades||{});
+  d.decor = Object.assign(defaultState().decor, p.decor||{});
+  d.settings = Object.assign({sound:true,music:true}, p.settings||{});
+  d.tutorial = p.tutorial ? Object.assign({off:false,seen:{}}, p.tutorial) : {off:!!p.started, seen:{}};
+  for(k in def){
+    var dv=def[k], v=d[k];
+    if(dv===null) continue;
+    var okType = (typeof v===typeof dv) && (Array.isArray(v)===Array.isArray(dv)) && v!==null;
+    if(!okType || (typeof v==='number' && !isFinite(v))) d[k]=dv;
+  }
+  if(d.day<1) d.day=1;
+  if(d.reputation<0) d.reputation=0;
+  if(d.loan<0) d.loan=0;
+  if(['morning','open','summary'].indexOf(d.phase)<0) d.phase='morning';
+  return d;
+}
+function loadState(){
+  try{
+    var raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return null;
+    return mergeSave(JSON.parse(raw));
+  }catch(e){ return null; }
+}
+function saveState(){ try{ state.savedAt=Date.now(); localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }catch(e){} }
+var state = loadState() || defaultState();
+state.screen = 'menu';
+var resetArmed = false, toastTimer = null, audioCtx = null, questTab = 'daily', endAction = null, lastTick = Date.now();
+
+/* ================= UTIL ================= */
+function randomFrom(a){ return a[Math.floor(Math.random()*a.length)]; }
+function randBetween(a,b){ return a + Math.random()*(b-a); }
+function formatCoins(n){ return Math.round(n).toLocaleString('ru-RU'); }
+function getRepLevel(){ return Math.floor(state.reputation/REP_PER_LEVEL)+1; }
+function districtById(id){ for(var i=0;i<DISTRICTS.length;i++) if(DISTRICTS[i].id===id) return DISTRICTS[i]; return DISTRICTS[0]; }
+function unlockedDistricts(){ var l=getRepLevel(); return DISTRICTS.filter(function(d){return d.reqLevel<=l;}); }
+function maxSlots(){ return state.upgrades.counter ? 4 : 3; }
+function rentFor(day){ return Math.min(450, 160+(day-1)*14); }
+function weightedPick(weights){
+  var total=0,k; for(k in weights) total+=weights[k];
+  var r=Math.random()*total;
+  for(k in weights){ r-=weights[k]; if(r<=0) return k; }
+  return Object.keys(weights)[0];
+}
+function ac(){
+  var A=window.AudioContext||window.webkitAudioContext;
+  if(!A) return null;
+  audioCtx=audioCtx||new A();
+  if(audioCtx.state==='suspended' && audioCtx.resume) audioCtx.resume();
+  return audioCtx;
+}
+function tone(freq,dur,delay,type,vol){
+  var a=ac(); if(!a) return;
+  var t=a.currentTime+(delay||0), o=a.createOscillator(), g=a.createGain();
+  o.type=type||'square'; o.frequency.setValueAtTime(freq,t);
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(vol||0.05,t+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+dur+0.02);
+}
+var SFX={
+  click:[[880,0.04,0,'square',0.025]],
+  pick:[[660,0.05,0,'square',0.035],[880,0.05,0.05,'square',0.035]],
+  buy:[[523,0.07,0],[784,0.1,0.07]],
+  open:[[392,0.1,0],[523,0.1,0.1],[659,0.1,0.2],[784,0.2,0.3]],
+  bell:[[1047,0.15,0,'sine',0.06],[1319,0.25,0.12,'sine',0.05]],
+  pack:[[440,0.08,0],[554,0.08,0.08],[659,0.12,0.16]],
+  courier:[[330,0.06,0],[392,0.06,0.07],[494,0.06,0.14],[659,0.1,0.21]],
+  coin:[[988,0.07,0,'square',0.05],[1319,0.18,0.07,'square',0.05]],
+  good:[[523,0.1,0],[659,0.1,0.1],[784,0.2,0.2]],
+  fanfare:[[523,0.1,0],[659,0.1,0.1],[784,0.1,0.2],[1047,0.35,0.3]],
+  bad:[[330,0.15,0,'sawtooth',0.04],[247,0.3,0.15,'sawtooth',0.04]],
+  levelup:[[523,0.1,0],[659,0.1,0.1],[784,0.1,0.2],[1047,0.1,0.3],[1319,0.4,0.4]],
+  story:[[659,0.15,0,'sine',0.06],[784,0.15,0.15,'sine',0.06],[988,0.3,0.3,'sine',0.06]]
+};
+var lastSfx=0;
+function sfx(name){
+  if(!state.settings.sound) return;
+  try{
+    var seq=SFX[name]; if(!seq) return;
+    lastSfx=Date.now();
+    seq.forEach(function(n){ tone(n[0],n[1],n[2],n[3],n[4]); });
+  }catch(e){}
+}
+function playBeep(f,d){ if(!state.settings.sound) return; try{ tone(f||520,d||0.12,0,'square',0.05); }catch(e){} }
+var CHORDS=[[261.6,329.6,392,523.3],[220,261.6,329.6,440],[174.6,220,261.6,349.2],[196,246.9,293.7,392]];
+var ARP=[0,1,2,3,2,1,2,3];
+var MUSIC={timer:null, step:0, next:0};
+function musicStep(step,when){
+  var a=audioCtx; if(!a) return;
+  var chord=CHORDS[Math.floor(step/8)%4], note=chord[ARP[step%8]];
+  function nt(freq,dur,type,vol){
+    var o=a.createOscillator(), g=a.createGain();
+    o.type=type; o.frequency.setValueAtTime(freq,when);
+    g.gain.setValueAtTime(0.0001,when);
+    g.gain.exponentialRampToValueAtTime(vol,when+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,when+dur);
+    o.connect(g); g.connect(a.destination); o.start(when); o.stop(when+dur+0.02);
+  }
+  nt(note*2,0.2,'triangle',0.018);
+  if(step%4===0) nt(chord[0]/2,0.5,'sine',0.03);
+}
+function scheduleMusic(){
+  var a=audioCtx; if(!a) return;
+  while(MUSIC.next<a.currentTime+0.6){ musicStep(MUSIC.step,MUSIC.next); MUSIC.step=(MUSIC.step+1)%32; MUSIC.next+=0.24; }
+}
+function startMusic(){
+  if(state.settings.music===false || MUSIC.timer) return;
+  try{ var a=ac(); if(!a) return; MUSIC.next=a.currentTime+0.1; MUSIC.timer=setInterval(scheduleMusic,200); }catch(e){}
+}
+function stopMusic(){ if(MUSIC.timer){ clearInterval(MUSIC.timer); MUSIC.timer=null; } }
+function toggleMusic(){
+  state.settings.music = state.settings.music===false;
+  updateSoundToggleUI(); saveState();
+  if(state.settings.music) startMusic(); else stopMusic();
+}
+function toggleTips(){ state.tutorial.off=!state.tutorial.off; coachRefresh(); updateSoundToggleUI(); saveState(); }
+function showToast(msg){
+  var el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){ el.classList.remove('show'); },2300);
+}
+function starsHTML(n,anim){
+  var s='';
+  for(var i=0;i<3;i++) s += i<n ? '<span class="st'+(anim?' pop':'')+'" style="--i:'+i+'">★</span>' : '<span class="off">★</span>';
+  return '<span class="stars">'+s+'</span>';
+}
+var REDUCED=false;
+try{ REDUCED=!!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){}
+function floatText(msg,cls){
+  if(REDUCED) return;
+  var l=document.getElementById('fx-layer'); if(!l) return;
+  var d=document.createElement('div'); d.className='float-text '+(cls||''); d.textContent=msg; l.appendChild(d);
+  setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); },1400);
+}
+function confetti(n){
+  if(REDUCED) return;
+  var l=document.getElementById('fx-layer'); if(!l) return;
+  var cols=['#ef7fa4','#f7c948','#7be0a0','#b48ee0','#f6f1e3','#e0525f'], made=[];
+  for(var i=0;i<n;i++){
+    var c=document.createElement('span'); c.className='conf';
+    c.style.left=(40+Math.random()*20)+'%'; c.style.top='42%';
+    c.style.background=cols[Math.floor(Math.random()*cols.length)];
+    c.style.setProperty('--dx',(Math.random()*640-320)+'px');
+    c.style.setProperty('--dy',(-Math.random()*420-60)+'px');
+    c.style.setProperty('--rot',(Math.random()*720-360)+'deg');
+    l.appendChild(c); made.push(c);
+  }
+  setTimeout(function(){ made.forEach(function(c){ if(c.parentNode) c.parentNode.removeChild(c); }); },1600);
+}
+var shownCoins=null, coinAnimId=0;
+function animateCoins(el,to){
+  if(REDUCED || shownCoins===null || shownCoins===to){ el.textContent=formatCoins(to); shownCoins=to; return; }
+  var from=shownCoins, t0=Date.now(), dur=500, id=++coinAnimId; shownCoins=to;
+  (function step(){
+    if(id!==coinAnimId) return;
+    var k=Math.min(1,(Date.now()-t0)/dur);
+    el.textContent=formatCoins(from+(to-from)*k);
+    if(k<1) requestAnimationFrame(step);
+  })();
+}
+
+/* ================= STOCK ================= */
+function shelfOf(id){ return getFlower(id).shelf + (state.upgrades.fridge?1:0); }
+function stockTotal(id){ var b=state.stock[id]||[], s=0; for(var i=0;i<b.length;i++) s+=b[i].n; return s; }
+function stockStemsAll(){ var t=0; for(var i=0;i<FLOWERS.length;i++) t+=stockTotal(FLOWERS[i].id); return t; }
+function addStock(id,n){
+  var arr=state.stock[id]||(state.stock[id]=[]);
+  for(var i=0;i<arr.length;i++){ if(arr[i].age===0){ arr[i].n+=n; return; } }
+  arr.push({n:n,age:0});
+}
+function takeStock(id,n){
+  var arr=state.stock[id]||[];
+  arr.sort(function(a,b){return b.age-a.age;});
+  var left=n;
+  for(var i=0;i<arr.length && left>0;i++){
+    var t=Math.min(arr[i].n,left); arr[i].n-=t; left-=t;
+  }
+  state.stock[id]=arr.filter(function(b){return b.n>0;});
+}
+function peekFresh(id,n){
+  var arr=(state.stock[id]||[]).slice().sort(function(a,b){return b.age-a.age;});
+  var sh=shelfOf(id), sum=0, cnt=0;
+  for(var i=0;i<arr.length && cnt<n;i++){
+    var t=Math.min(arr[i].n,n-cnt);
+    sum += t*Math.max(0,1-arr[i].age/sh); cnt+=t;
+  }
+  return {sum:sum,n:cnt};
+}
+var WHOLESALE = 0.65, REP_PER_LEVEL = 140;
+function wholesaleBase(id){ return Math.round(getFlower(id).price*WHOLESALE); }
+function wholesaleCost(id){
+  var c=getFlower(id).price*WHOLESALE;
+  if(state.upgrades.supplier) c*=0.85;
+  if(perkActive('dima')) c*=0.9;
+  if(state.decor.vines) c*=0.95;
+  c*=evMul('wholesale');
+  if(state.phase==='open') c*=1.3;
+  return Math.max(1,Math.ceil(c));
+}
+function expiringTodayCount(){
+  var t=0;
+  for(var i=0;i<FLOWERS.length;i++){
+    var id=FLOWERS[i].id, sh=shelfOf(id), arr=state.stock[id]||[];
+    for(var j=0;j<arr.length;j++) if(arr[j].age+1>=sh) t+=arr[j].n;
+  }
+  return t;
+}
+function ageStock(){
+  var count=0,value=0;
+  Object.keys(state.stock).forEach(function(id){
+    var sh=shelfOf(id), keep=[];
+    state.stock[id].forEach(function(b){
+      b.age+=1;
+      if(b.age>=sh){ count+=b.n; value+=b.n*wholesaleBase(id); } else keep.push(b);
+    });
+    state.stock[id]=keep;
+  });
+  return {count:count,value:value};
+}
+function buyFlower(id,n){
+  var free=stockCapacity()-stockStemsAll();
+  if(free<=0){ showToast('Склад полон ('+stockCapacity()+' шт.) — расширь его в Магазине'); return; }
+  n=Math.min(n,free);
+  var cost=wholesaleCost(id)*n;
+  if(state.coins<cost){ showToast('Не хватает монет 🪙'); return; }
+  state.coins-=cost; state.dayStats.spent+=cost;
+  addStock(id,n); sfx('buy');
+  render();
+}
+function starterStock(){
+  state.stock={};
+  addStock('rose',4); addStock('tulip',4); addStock('gypsophila',4); addStock('carnation',3); addStock('peony',3);
+}
+
+/* ================= FORECAST / DAY ================= */
+function curEvent(){ return (state.forecast && state.forecast.event) || {}; }
+function evMul(key){ var e=curEvent(); return e[key]!==undefined ? e[key] : 1; }
+function generateForecast(){
+  var w={soft:1,bright:1,elegant:1,romantic:1};
+  var keys=STYLE_KEYS.slice();
+  var a=randomFrom(keys); keys.splice(keys.indexOf(a),1);
+  var b=randomFrom(keys);
+  w[a]=3; w[b]=3;
+  var ev=null;
+  if(state.day%7===0) ev=HOLIDAY;
+  else if(Math.random()<0.4) ev=randomFrom(EVENTS);
+  if(ev && ev.weights){ for(var k in ev.weights) w[k]=ev.weights[k]; }
+  state.forecast={weights:w, event: ev ? JSON.parse(JSON.stringify(ev)) : null};
+}
+function plannedClients(){
+  var e=curEvent();
+  return Math.max(3, Math.min(12,5+getRepLevel())+(e.extra||0)+(state.adToday?2:0));
+}
+function forecastText(){
+  var w=state.forecast.weights, hot=[];
+  STYLE_KEYS.forEach(function(k){ if(w[k]>=3) hot.push(STYLES[k].label); });
+  return hot.join(', ');
+}
+function openShop(){
+  if(state.phase!=='morning') return;
+  state.phase='open';
+  state.spawnRemaining=plannedClients();
+  state.spawnTimer=0;
+  sfx('open');
+  showScreen('hub');
+}
+function couriersBusy(){ return state.couriers.some(function(c){return c.state==='out';}); }
+function checkDayEnd(){
+  if(state.phase==='open' && state.spawnRemaining<=0 && state.counter.length===0 && state.deliveryQueue.length===0 && state.parcels.length===0 && !couriersBusy()) endDay();
+}
+function endDay(){
+  var rent=rentFor(state.day);
+  state.coins-=rent;
+  var interest = state.loan>0 ? Math.ceil(state.loan*0.04) : 0;
+  state.loan+=interest;
+  var sp=ageStock(), st=state.dayStats;
+  state.daySummary={day:state.day, served:st.served, lost:st.lost, income:st.income, spent:st.spent, rent:rent, delivered:st.delivered||0, interest:interest,
+    spoiledCount:sp.count, spoiledValue:sp.value, avgStars: st.served ? st.starsSum/st.served : 0,
+    net: st.income-st.spent-rent};
+  state.phase='summary'; state.activeClientId=null;
+  showScreen('hub');
+  checkEnd();
+}
+function nextDay(){
+  state.day+=1; state.phase='morning';
+  state.dayStats={served:0,lost:0,income:0,spent:0,starsSum:0,delivered:0};
+  state.daySummary=null; state.regularsToday=[]; state.adToday=false;
+  state.servedToday=0; state.incomeToday=0; state.threeStarsToday=0; state.usedFlowerTypesToday=[];
+  generateDailyQuests(); generateForecast();
+  showScreen('hub');
+  showToast('☀️ День '+state.day);
+}
+function checkEnd(){
+  if(state.coins<0){ showEndModal('gameover'); }
+  else if(state.loan>loanLimit()*2){ showEndModal('debt'); }
+  else if(!state.won && getRepLevel()>=5){ state.won=true; sfx('levelup'); confetti(90); showEndModal('victory'); }
+}
+function showEndModal(kind){
+  var t=document.getElementById('end-title'), x=document.getElementById('end-text'), b=document.getElementById('end-btn');
+  if(kind==='gameover'){
+    t.textContent='БАНКРОТСТВО'; x.textContent='Касса ушла в минус — аренда съела всё. Но каждый флорист начинал с провалов. Попробуем ещё раз?'; b.textContent='Начать заново'; endAction='reset';
+  } else if(kind==='franchise'){
+    t.textContent='СЕТЬ МАГАЗИНОВ!'; x.textContent='Вы открыли второй магазин и превратили маленькую лавку в сеть! Это настоящая вершина: все цели можно собирать дальше, а оплата теперь выше на 15%.'; b.textContent='Продолжить'; endAction='close';
+  } else if(kind==='debt'){
+    t.textContent='ДОЛГОВАЯ ЯМА'; x.textContent='Долг по кредиту вырос слишком сильно, и банк закрыл магазин. Займы стоит возвращать вовремя!'; b.textContent='Начать заново'; endAction='reset';
+  } else {
+    t.textContent='ЛУЧШИЙ ФЛОРИСТ!'; x.textContent='Вы достигли 5 уровня репутации и стали лучшим флористом города! Можно играть дальше: впереди цели, декор и рейтинг магазинов.'; b.textContent='Продолжить'; endAction='close';
+  }
+  document.getElementById('modal-end').classList.add('active');
+}
+function endModalAction(){
+  document.getElementById('modal-end').classList.remove('active');
+  if(endAction==='reset') doReset();
+  coachRefresh();
+}
+
+/* ================= CLIENTS & ORDERS ================= */
+function generateOrder(district, forced){
+  var style = forced && forced.style ? forced.style : weightedPick(state.forecast.weights);
+  var occasion = forced && forced.greeting ? forced.greeting : randomFrom(OCCASIONS[style]);
+  var budget = Math.max(200, Math.round(randBetween(230,520)*district.priceMult*evMul('budget')/50)*50);
+  if(forced && forced.budget) budget = forced.budget;
+  var avoid=null, fav=null;
+  if(forced){ fav=forced.fav||null; }
+  else if(Math.random()<0.22) avoid=randomFrom(AVOIDABLE);
+  else if(Math.random()<0.3){
+    var cand=FLOWERS.filter(function(f){return f.styles.indexOf(style)>=0;});
+    fav=randomFrom(cand).id;
+  }
+  var text=occasion+' '+STYLES[style].phrase+' Бюджет до '+budget+'.';
+  if(avoid) text+=' У меня аллергия на '+getFlower(avoid).acc+'.';
+  if(fav) text+=' Обожаю '+getFlower(fav).acc+'.';
+  return {style:style, budget:budget, avoid:avoid, fav:fav, occasion:occasion, text:text};
+}
+function pickType(){
+  var w={}; for(var k in CLIENT_TYPES) w[k]=CLIENT_TYPES[k].w;
+  return weightedPick(w);
+}
+function getRegular(id){ for(var i=0;i<REGULARS.length;i++) if(REGULARS[i].id===id) return REGULARS[i]; return null; }
+function perkActive(id){ var r=state.regulars[id]; return !!(r && r.ch>=3); }
+function pickRegular(){
+  var cands=REGULARS.filter(function(R){
+    return state.day>=R.fromDay && state.regularsToday.indexOf(R.id)<0 && !state.counter.some(function(c){return c.regularId===R.id;});
+  });
+  return cands.length ? randomFrom(cands) : null;
+}
+function generateClient(opts){
+  opts=opts||{};
+  var avail=unlockedDistricts(), dist=randomFrom(avail);
+  var R=(!opts.delivery && Math.random()<0.22) ? pickRegular() : null;
+  var type=R ? R.type : pickType(), T=CLIENT_TYPES[type];
+  var base=opts.delivery ? 150000 : BASE_PATIENCE;
+  var pm=base*T.patience*(state.upgrades.helper?1.25:1)*evMul('patience')*(perkActive('nina')?1.1:1)*(state.decor.clock?1.1:1);
+  var id='c'+(state.nextClientId++);
+  var name, look, order;
+  if(R){
+    state.regularsToday.push(R.id);
+    var st=state.regulars[R.id]||{aff:0,ch:0};
+    var gr=R.greetings[Math.min(st.ch,R.greetings.length-1)];
+    order=generateOrder(dist,{style:R.style,fav:R.fav,greeting:gr,budget:R.budget});
+    name=R.name; look=R.look;
+  } else {
+    var used=state.counter.concat(state.deliveryQueue).map(function(c){return c.name;});
+    var pool=CLIENT_NAMES.filter(function(n){return used.indexOf(n)<0;});
+    name=randomFrom(pool.length?pool:CLIENT_NAMES);
+    look={skin:randomFrom(SKIN_TONES),hair:randomFrom(HAIR_COLORS),outfit:randomFrom(OUTFIT_COLORS),hairStyle:Math.floor(Math.random()*2)};
+    order=generateOrder(dist);
+  }
+  if(opts.delivery) order.text='📞 '+order.text;
+  return {id:id, name:name, type:type, districtId:dist.id, skin:look.skin, hair:look.hair, outfit:look.outfit, hairStyle:look.hairStyle,
+    order:order, patienceMax:pm, patienceLeft:pm, delivery:!!opts.delivery, regularId:R?R.id:null, fresh:true};
+}
+function getClient(id){
+  var i;
+  for(i=0;i<state.counter.length;i++) if(state.counter[i].id===id) return state.counter[i];
+  for(i=0;i<state.deliveryQueue.length;i++) if(state.deliveryQueue[i].id===id) return state.deliveryQueue[i];
+  return null;
+}
+function isRunning(){
+  if(!state.started || state.phase!=='open') return false;
+  if(state.screen==='menu' || state.screen==='result') return false;
+  if(coachCurrent) return false;
+  var m=document.querySelectorAll('.modal-overlay.active');
+  return !(m && m.length>0);
+}
+function patienceColor(pct){ return 'hsl('+Math.round(Math.max(0,Math.min(100,pct))*1.2)+',70%,50%)'; }
+function setBar(id,pct){ var el=document.getElementById(id); if(el){ el.style.width=pct+'%'; el.style.background=patienceColor(pct); } }
+function updateBars(){
+  state.counter.concat(state.deliveryQueue).forEach(function(c){
+    var pct=Math.max(0,c.patienceLeft/c.patienceMax*100);
+    setBar('pat-'+c.id,pct);
+    var card=document.getElementById('card-'+c.id);
+    if(card){ if(pct<25) card.classList.add('urgent'); else card.classList.remove('urgent'); }
+  });
+  state.parcels.forEach(function(p){ setBar('par-'+p.id, Math.max(0,p.timeLeft/p.tMax*100)); });
+  var ac=getClient(state.activeClientId);
+  if(ac) setBar('pat-assemble', Math.max(0,ac.patienceLeft/ac.patienceMax*100));
+}
+function refreshMini(){
+  var els=document.querySelectorAll('.mini-status');
+  var html='<span>🪙 '+formatCoins(state.coins)+'</span>';
+  if(state.phase==='open'){
+    var minp=100;
+    state.counter.forEach(function(c){ minp=Math.min(minp,c.patienceLeft/c.patienceMax*100); });
+    html+='<span>👥 '+(state.counter.length+state.spawnRemaining)+'</span>';
+    if(deliveryUnlocked()){
+      var out=0; state.couriers.forEach(function(c){ out+=c.load?c.load.length:0; });
+      html+='<span>📦 '+(state.deliveryQueue.length+state.parcels.length+out)+'</span>';
+    }
+    if(state.counter.length) html+='<span class="patience-bar" style="width:60px"><span class="patience-fill" style="display:block;width:'+minp+'%;background:'+patienceColor(minp)+'"></span></span>';
+  }
+  for(var i=0;i<els.length;i++) els[i].innerHTML=html;
+}
+function loseClient(c,pen,msg){
+  state.reputation=Math.max(0,state.reputation-pen);
+  state.dayStats.lost+=1;
+  showToast(c.name+msg+' (−'+pen+' ❤️)');
+  if(state.activeClientId===c.id){ state.activeClientId=null; if(state.screen==='assemble') state.screen='hub'; }
+}
+function advanceTime(dt){
+  if(!isRunning()) return;
+  var changed=false;
+  state.spawnTimer-=dt;
+  var waiting=state.counter.length+state.deliveryQueue.length;
+  if(waiting===0 && state.spawnRemaining>0 && state.spawnTimer>1500) state.spawnTimer=1500;
+  if(state.spawnRemaining>0 && state.spawnTimer<=0){
+    var spawned=false;
+    var asDelivery=deliveryUnlocked() && state.deliveryQueue.length<3 && Math.random()<0.35;
+    if(asDelivery){ state.deliveryQueue.push(generateClient({delivery:true})); spawned=true; }
+    else if(state.counter.length<maxSlots()){ state.counter.push(generateClient()); spawned=true; }
+    if(spawned){ state.spawnRemaining-=1; state.spawnTimer=randBetween(9000,15000); changed=true; sfx('bell'); }
+  }
+  var left=[];
+  state.counter.forEach(function(c){
+    c.patienceLeft-=dt;
+    if(c.patienceLeft<=0){ loseClient(c,2,' ушёл(-ла), не дождавшись 😔'); changed=true; } else left.push(c);
+  });
+  state.counter=left;
+  var dl=[];
+  state.deliveryQueue.forEach(function(c){
+    c.patienceLeft-=dt;
+    if(c.patienceLeft<=0){ loseClient(c,2,' отменил(а) заказ по телефону 📞'); changed=true; } else dl.push(c);
+  });
+  state.deliveryQueue=dl;
+  var pl=[];
+  state.parcels.forEach(function(p){
+    p.timeLeft-=dt;
+    if(p.timeLeft<=0){
+      state.reputation=Math.max(0,state.reputation-2); state.dayStats.lost+=1; changed=true;
+      showToast('📦 Заказ для '+p.clientName+' не успели отправить (−2 ❤️)');
+    } else pl.push(p);
+  });
+  state.parcels=pl;
+  state.deliverySel=state.deliverySel.filter(function(id){ return !!getParcel(id); });
+  if(advanceCouriers(dt)) changed=true;
+  if(changed) render(); else { updateBars(); refreshMini(); updateCouriersViz(); }
+  checkDayEnd();
+}
+function tickLoop(){
+  var now=Date.now(), dt=Math.min(1000, now-lastTick); lastTick=now;
+  advanceTime(dt);
+}
+
+/* ================= ASSEMBLY ================= */
+function openAssemble(id){
+  if(!getClient(id)) return;
+  if(state.activeClientId!==id) state.assembly={main:null,accent:null,filler:null};
+  state.activeClientId=id;
+  showScreen('assemble');
+}
+function neededFor(asm){
+  var need={};
+  SLOT_KEYS.forEach(function(k){ var id=asm[k]; if(id && id!=='greens') need[id]=(need[id]||0)+SLOTS[k].n; });
+  return need;
+}
+function canPick(slot,id){
+  if(id==='greens') return slot==='filler';
+  var tmp={main:state.assembly.main,accent:state.assembly.accent,filler:state.assembly.filler};
+  tmp[slot]=id;
+  var need=neededFor(tmp);
+  return (need[id]||0)<=stockTotal(id);
+}
+function pickSlot(slot,id){
+  if(state.assembly[slot]===id){ state.assembly[slot]=null; render(); return; }
+  if(!canPick(slot,id)){ showToast('Не хватает стеблей на складе'); return; }
+  state.assembly[slot]=id; sfx('pick'); render();
+}
+function evaluateBouquet(asm,client){
+  var ord=client.order, price=0, match=0, total=0, need={};
+  SLOT_KEYS.forEach(function(k){
+    var id=asm[k], n=SLOTS[k].n, f=getFlower(id);
+    total+=n; price+=f.price*n;
+    if(f.styles.indexOf(ord.style)>=0) match+=n;
+    if(id!=='greens') need[id]=(need[id]||0)+n;
+  });
+  var styleRatio=match/total, fs=0, fn=0;
+  for(var id in need){ var pf=peekFresh(id,need[id]); fs+=pf.sum; fn+=pf.n; }
+  var fresh = fn>0 ? fs/fn : 1;
+  var hasAvoid=!!ord.avoid && !!need[ord.avoid];
+  var hasFav=!!ord.fav && !!need[ord.fav];
+  var variety=asm.main!==asm.accent;
+  var score=0;
+  score += styleRatio>=0.65 ? 40 : (styleRatio>=0.4 ? 22 : 5);
+  score += price<=ord.budget ? 25 : (price<=ord.budget*1.15 ? 10 : 0);
+  score += ord.fav ? (hasFav?15:0) : (variety?15:5);
+  score += fresh>=0.6 ? 20 : (fresh>=0.35 ? 10 : 0);
+  var stars = hasAvoid ? 0 : (score>=90 ? 3 : (score>=55 ? 2 : 1));
+  return {stars:stars, score:score, price:price, styleRatio:styleRatio, fresh:fresh, hasAvoid:hasAvoid, hasFav:hasFav, overBudget:price>ord.budget, need:need};
+}
+function asmComplete(){ var a=state.assembly; return !!(a.main && a.accent && a.filler); }
+function calcPay(price,stars,type,districtId,isDelivery){
+  var T=CLIENT_TYPES[type], dist=districtById(districtId);
+  var sm={0:0,1:0.5,2:0.85,3:1.05}[stars], tip=1+(dist.priceMult-1)*0.5;
+  return Math.round(price*sm*T.pay*tip*evMul('pay')*(perkActive('volkova')?1.1:1)*(state.decor.garland?1.05:1)*(state.upgrades.franchise?1.15:1)*(isDelivery?1.2:1));
+}
+function calcRep(stars,type){
+  var T=CLIENT_TYPES[type], b={0:-6,1:1,2:3,3:6}[stars];
+  return b>0 ? Math.round(b*T.rep*(state.upgrades.sign?1.15:1)*(perkActive('artem')?1.1:1)*(state.decor.paint?1.1:1)) : b;
+}
+function applyOutcome(o){
+  var prevLevel=getRepLevel(), before=state.reputation;
+  state.reputation=Math.max(0,state.reputation+o.rep);
+  var repGain=Math.max(0,state.reputation-before);
+  state.coins+=o.coins;
+  var st=state.dayStats;
+  if(o.stars>0){
+    st.served+=1; st.income+=o.coins; st.starsSum+=o.stars;
+    state.servedToday+=1; state.incomeToday+=o.coins; state.weeklyServed+=1; state.weeklyIncome+=o.coins; state.monthlyServed+=1; state.monthlyIncome+=o.coins;
+    state.clientsServedTotal+=1; state.totalIncome+=o.coins; if(o.stars===3) state.totalThree+=1;
+    if(o.stars===3){ state.threeStarsToday+=1; state.weeklyThreeStars+=1; state.monthlyThreeStars+=1; }
+    if(o.delivery){ state.totalDeliveries+=1; st.delivered=(st.delivered||0)+1; state.weeklyDeliveries+=1; state.monthlyDeliveries+=1; }
+  } else { st.lost+=1; }
+  state.weeklyRep+=repGain; state.monthlyRep+=repGain;
+  var story=o.regularId ? applyRegular(o.regularId,o.stars) : null;
+  if(getRepLevel()>prevLevel){ sfx('levelup'); confetti(70); showToast(getRepLevel()===2 ? '🚴 Открыта доставка! Новый раздел «Доставка»' : '⭐ Новый уровень репутации: '+getRepLevel()); }
+  else if(o.stars===3) confetti(26);
+  if(o.coins>0) floatText('+'+o.coins+' 🪙','gold');
+  if(repGain>0) setTimeout(function(){ floatText('+'+repGain+' ❤️','pink'); },250);
+  return {story:story};
+}
+function giveBouquet(){
+  var c=getClient(state.activeClientId);
+  if(!c || !asmComplete()) return;
+  var a=state.assembly, ev=evaluateBouquet(a,c);
+  SLOT_KEYS.forEach(function(k){ if(a[k]!=='greens') takeStock(a[k],SLOTS[k].n); });
+  SLOT_KEYS.forEach(function(k){ var id=a[k]; if(id!=='greens' && state.usedFlowerTypesToday.indexOf(id)<0) state.usedFlowerTypesToday.push(id); });
+  var T=CLIENT_TYPES[c.type], dist=districtById(c.districtId);
+  state.activeClientId=null; state.assembly={main:null,accent:null,filler:null};
+  if(c.delivery){
+    state.deliveryQueue=state.deliveryQueue.filter(function(x){return x.id!==c.id;});
+    state.parcels.push({id:'p'+(state.nextParcelId++), clientName:c.name, skin:c.skin, hair:c.hair, outfit:c.outfit, hairStyle:c.hairStyle,
+      type:c.type, districtId:c.districtId, stars:ev.stars, price:ev.price, tMax:c.patienceMax, timeLeft:c.patienceLeft, regularId:c.regularId, allergy:ev.hasAvoid});
+    sfx('pack');
+    showToast('📦 Букет для '+c.name+' упакован — отправь курьера');
+    showScreen('hub');
+    return;
+  }
+  var coins=calcPay(ev.price,ev.stars,c.type,c.districtId,false);
+  var speed=(c.patienceLeft/c.patienceMax)>0.7;
+  if(speed && ev.stars>0) coins=Math.round(coins*1.1);
+  var rep=calcRep(ev.stars,c.type);
+  var out=applyOutcome({stars:ev.stars,coins:coins,rep:rep,regularId:c.regularId,delivery:false});
+  state.counter=state.counter.filter(function(x){return x.id!==c.id;});
+  state.lastResult={clientName:c.name, hair:c.hair, skin:c.skin, outfit:c.outfit, hairStyle:c.hairStyle, type:c.type, district:dist.name,
+    stars:ev.stars, coins:coins, rep:rep, speed:speed&&ev.stars>0, price:ev.price, budget:c.order.budget, allergy:ev.hasAvoid, story:out.story};
+  sfx(ev.stars>=3?'fanfare':(ev.stars>0?'good':'bad'));
+  showScreen('result');
+}
+function finishResult(){
+  state.lastResult=null;
+  showScreen('hub');
+  checkDayEnd();
+  checkEnd();
+}
+
+/* ================= QUESTS ================= */
+function getWeekKey(){
+  var d=new Date(), j=new Date(d.getFullYear(),0,1);
+  return d.getFullYear()+'-W'+Math.ceil((((d-j)/86400000)+j.getDay()+1)/7);
+}
+function getMonthKey(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1); }
+function generateDailyQuests(){
+  var fc=randomFrom(FLOWERS);
+  var st=4+Math.floor(Math.random()*3), et=400+Math.floor(Math.random()*4)*100, tt=1+Math.floor(Math.random()*2);
+  state.quests=[
+    {label:'Успешно обслужить клиентов: '+st, target:st, counterKey:'servedToday', reward:{coins:60+st*10}, claimed:false},
+    {label:'Выручка за день: '+et+' монет', target:et, counterKey:'incomeToday', reward:{coins:Math.round(et*0.15)}, claimed:false},
+    {label:'Получить 3★ за букет ×'+tt, target:tt, counterKey:'threeStarsToday', reward:{reputation:4+tt*2}, claimed:false},
+    {label:'Использовать «'+fc.name+'» в заказе', target:1, counterKey:'useFlower', flowerId:fc.id, reward:{coins:50,reputation:3}, claimed:false}
+  ];
+}
+function generateWeeklyQuests(){
+  state.weeklyQuests=[
+    {label:'Обслужить 25 клиентов за неделю', target:25, counterKey:'weeklyServed', reward:{coins:500}, claimed:false},
+    {label:'Выручка за неделю: 3000 монет', target:3000, counterKey:'weeklyIncome', reward:{coins:450}, claimed:false},
+    {label:'Получить 3★ за букет ×8', target:8, counterKey:'weeklyThreeStars', reward:{coins:300,reputation:15}, claimed:false},
+    {label:'Доставить курьером 6 заказов', target:6, counterKey:'weeklyDeliveries', reward:{coins:350}, claimed:false},
+    {label:'Набрать 60 репутации за неделю', target:60, counterKey:'weeklyRep', reward:{coins:250,reputation:20}, claimed:false}
+  ];
+}
+function generateMonthlyQuests(){
+  state.monthlyQuests=[
+    {label:'Обслужить 100 клиентов за месяц', target:100, counterKey:'monthlyServed', reward:{coins:2000}, claimed:false},
+    {label:'Выручка за месяц: 12000 монет', target:12000, counterKey:'monthlyIncome', reward:{coins:1800}, claimed:false},
+    {label:'Получить 3★ за букет ×35', target:35, counterKey:'monthlyThreeStars', reward:{coins:1200,reputation:40}, claimed:false},
+    {label:'Доставить курьером 25 заказов', target:25, counterKey:'monthlyDeliveries', reward:{coins:1000}, claimed:false},
+    {label:'Набрать 250 репутации за месяц', target:250, counterKey:'monthlyRep', reward:{coins:1000,reputation:50}, claimed:false}
+  ];
+}
+function checkPeriodResets(){
+  var wk=getWeekKey();
+  if(state.weeklyKey!==wk){ state.weeklyKey=wk; state.weeklyServed=0; state.weeklyIncome=0; state.weeklyThreeStars=0; state.weeklyRep=0; state.weeklyDeliveries=0; generateWeeklyQuests(); }
+  var mk=getMonthKey();
+  if(state.monthlyKey!==mk){
+    grantMonthPrize();
+    state.monthlyKey=mk; state.monthlyServed=0; state.monthlyIncome=0; state.monthlyThreeStars=0; state.monthlyRep=0; state.monthlyDeliveries=0; generateMonthlyQuests();
+  }
+}
+function getQuestProgress(q){
+  if(q.counterKey && q.counterKey.indexOf('goal:')===0) return goalProgress(q.counterKey.slice(5));
+  if(q.counterKey==='useFlower') return state.usedFlowerTypesToday.indexOf(q.flowerId)>=0 ? 1 : 0;
+  return state[q.counterKey]||0;
+}
+function questArrayForTab(t){
+  if(t==='weekly') return state.weeklyQuests;
+  if(t==='monthly') return state.monthlyQuests;
+  if(t==='goals') return goalQuests();
+  return state.quests;
+}
+function countClaimableQuests(){
+  var n=0;
+  [state.quests,state.weeklyQuests,state.monthlyQuests,goalQuests()].forEach(function(arr){
+    for(var i=0;i<arr.length;i++){ var q=arr[i]; if(!q.claimed && getQuestProgress(q)>=q.target) n++; }
+  });
+  return n;
+}
+function setQuestTab(t){ questTab=t; render(); }
+function claimQuest(tab,i){
+  var q=questArrayForTab(tab)[i];
+  if(!q || q.claimed || getQuestProgress(q)<q.target) return;
+  if(q._goal) state.goalsClaimed[q._goal]=true; else q.claimed=true;
+  if(q.reward.coins) state.coins+=q.reward.coins;
+  if(q.reward.reputation) state.reputation+=q.reward.reputation;
+  sfx('coin'); if(q.reward.coins) floatText('+'+q.reward.coins+' 🪙','gold');
+  showToast('Задание выполнено!');
+  render();
+}
+
+/* ================= NAVIGATION ================= */
+function render(){
+  checkPeriodResets();
+  var screens=document.querySelectorAll('.screen');
+  for(var i=0;i<screens.length;i++) screens[i].classList.remove('active');
+  var cur=document.getElementById('screen-'+state.screen);
+  if(cur) cur.classList.add('active');
+  var s=state.screen;
+  if(s==='hub') renderHub();
+  else if(s==='assemble') renderAssemble();
+  else if(s==='result') renderResult();
+  else if(s==='stock') renderStock();
+  else if(s==='map') renderMap();
+  else if(s==='shopUpgrades') renderShop();
+  else if(s==='quests') renderQuests();
+  else if(s==='delivery') renderDelivery();
+  else if(s==='regulars') renderRegulars();
+  else if(s==='bank') renderBank();
+  refreshMini();
+  coachRefresh();
+  saveState();
+}
+function showScreen(name){ state.screen=name; render(); }
+function startGame(){
+  if(!state.started){
+    state.started=true;
+    starterStock(); generateForecast(); generateDailyQuests();
+  }
+  ensureCouriers();
+  startMusic();
+  showScreen('hub');
+}
+
+/* ================= RENDER: HUB ================= */
+function renderHub(){
+  document.getElementById('hud-day').textContent='День '+state.day;
+  animateCoins(document.getElementById('hud-coins'),state.coins);
+  var level=getRepLevel(), within=state.reputation%REP_PER_LEVEL;
+  document.getElementById('hud-rep-fill').style.width=(within/REP_PER_LEVEL*100)+'%';
+  document.getElementById('hud-rep-text').textContent='Ур.'+level+' · '+within+'/'+REP_PER_LEVEL;
+  var left=document.getElementById('hud-left');
+  if(state.phase==='open'){ left.style.display='flex'; document.getElementById('hud-left-n').textContent=(state.counter.length+state.deliveryQueue.length+state.spawnRemaining); }
+  else left.style.display='none';
+
+  var claimable=countClaimableQuests(), nav='';
+  for(var i=0;i<NAV_ITEMS.length;i++){
+    var it=NAV_ITEMS[i];
+    if(it.cond==='delivery' && !deliveryUnlocked()) continue;
+    var n=0;
+    if(it.id==='quests') n=claimable;
+    if(it.id==='delivery') n=state.parcels.length;
+    var badge=n>0?'<span class="nav-badge">'+n+'</span>':'';
+    nav+='<div class="nav-item" data-nav="'+it.id+'" onclick="showScreen(\''+it.id+'\')">'+badge+'<span class="nav-icon">'+it.icon+'</span><span>'+it.label+'</span></div>';
+  }
+  document.getElementById('hub-sidebar').innerHTML=nav;
+
+  var box=document.getElementById('hub-content'), html='';
+  document.getElementById('hub-stage').className='hub-stage '+state.phase;
+  box.className='hub-content'+(state.phase==='open'?' open':'');
+  if(state.phase==='morning') html=morningHTML();
+  else if(state.phase==='summary') html=summaryHTML();
+  else html=counterHTML();
+  box.innerHTML=html;
+  updateBars();
+}
+function morningHTML(){
+  var ev=curEvent(), rent=rentFor(state.day), exp=expiringTodayCount();
+  var h='<div class="info-card"><h3>☀️ УТРО · ДЕНЬ '+state.day+'</h3>';
+  if(ev.name) h+='<div class="info-row"><span>'+ev.name+'</span></div><div class="info-note">'+(ev.desc||'')+'</div>';
+  h+='<div class="info-row"><span>Сегодня чаще просят</span><span class="v">'+forecastText()+'</span></div>';
+  h+='<div class="info-row"><span>Ожидаем клиентов</span><span class="v">'+plannedClients()+'</span></div>';
+  h+='<div class="info-row"><span>Цветов на складе</span><span class="v">'+stockStemsAll()+' шт.</span></div>';
+  if(exp>0) h+='<div class="info-row warn"><span>⚠ Завянут сегодня к вечеру</span><span class="v">'+exp+' шт.</span></div>';
+  h+='<div class="info-row"><span>Аренда вечером</span><span class="v neg">−'+rent+' 🪙</span></div>';
+  if(deliveryUnlocked()) h+='<div class="info-note">🚴 Доставка открыта: часть заказов придёт по телефону — собери букет и отправь курьера.</div>';
+  if(state.day===1){
+    h+='<div class="tip-box"><b>Как играть:</b> закупи цветы на складе, открой магазин, нажимай на клиента у прилавка, собери букет из трёх слотов под его пожелания (стиль, бюджет, аллергии) и отдай. Чем точнее — тем больше звёзд, монет и репутации. С Ур.2 откроется доставка курьером, а постоянные клиенты («Друзья») расскажут свои истории.</div>';
+  }
+  if(state.loan>0) h+='<div class="info-row warn"><span>🏦 Долг по кредиту</span><span class="v">'+formatCoins(state.loan)+' 🪙 (+4%/день)</span></div>';
+  h+=state.adToday ? '<div class="info-note pos">📣 Реклама куплена: +2 клиента сегодня.</div>' : '<div class="info-row"><span>📣 Реклама (+2 клиента сегодня)</span><button class="btn btn-secondary btn-sm" onclick="buyAd()">−'+adCost()+' 🪙</button></div>';
+  h+='<div class="info-actions"><button class="btn btn-secondary" onclick="showScreen(\'stock\')">📦 Закупка</button><button class="btn btn-primary" onclick="openShop()">Открыть магазин →</button></div></div>';
+  return h;
+}
+function summaryHTML(){
+  var s=state.daySummary;
+  if(!s) return '<div class="info-card"><button class="btn btn-primary" onclick="nextDay()">Дальше</button></div>';
+  var h='<div class="info-card"><h3>🌙 ИТОГИ ДНЯ '+s.day+'</h3>';
+  h+='<div class="info-row"><span>Обслужено</span><span class="v">'+s.served+' · потеряно '+s.lost+'</span></div>';
+  if(deliveryUnlocked()) h+='<div class="info-row"><span>Из них доставкой</span><span class="v">'+(s.delivered||0)+'</span></div>';
+  h+='<div class="info-row"><span>Средняя оценка</span><span class="v">'+(s.served? s.avgStars.toFixed(1)+' ★' : '—')+'</span></div>';
+  h+='<div class="info-row"><span>Выручка</span><span class="v pos">+'+formatCoins(s.income)+' 🪙</span></div>';
+  h+='<div class="info-row"><span>Закупки и курьеры</span><span class="v neg">−'+formatCoins(s.spent)+' 🪙</span></div>';
+  h+='<div class="info-row"><span>Аренда</span><span class="v neg">−'+formatCoins(s.rent)+' 🪙</span></div>';
+  if(s.interest>0) h+='<div class="info-row warn"><span>🏦 Проценты по кредиту</span><span class="v">+'+formatCoins(s.interest)+' к долгу (всего '+formatCoins(state.loan)+')</span></div>';
+  if(s.spoiledCount>0) h+='<div class="info-row warn"><span>🥀 Завяло цветов</span><span class="v">'+s.spoiledCount+' шт. (≈'+formatCoins(s.spoiledValue)+' 🪙)</span></div>';
+  h+='<div class="info-row"><span>Итог дня</span><span class="v '+(s.net>=0?'pos':'neg')+'">'+(s.net>=0?'+':'')+formatCoins(s.net)+' 🪙</span></div>';
+  h+='<div class="info-note">Касса: '+formatCoins(state.coins)+' 🪙 · цветы на складе постарели на день.</div>';
+  h+='<div class="info-actions"><button class="btn btn-secondary" onclick="showScreen(\'stock\')">📦 Склад</button><button class="btn btn-primary" onclick="nextDay()">Следующий день →</button></div></div>';
+  return h;
+}
+function counterHTML(){
+  var h='';
+  if(deliveryUnlocked()){
+    h+='<div class="phone-strip"><div class="ps-title">📞 Заказы по телефону</div><div class="ps-row">';
+    state.deliveryQueue.forEach(function(c){
+      var d=districtById(c.districtId);
+      h+='<div class="phone-card'+(c.fresh?' enter':'')+'" id="card-'+c.id+'" onclick="openAssemble(\''+c.id+'\')"><div class="pc-name">'+c.name+(c.type==='vip'?'<span class="badge vip">VIP</span>':'')+'</div><div class="cc-meta">'+d.name+'</div><div class="patience-bar"><div class="patience-fill" id="pat-'+c.id+'"></div></div></div>';
+      c.fresh=false;
+    });
+    if(state.parcels.length) h+='<div class="phone-card ready" onclick="showScreen(\'delivery\')"><div class="pc-name">📦 Готово: '+state.parcels.length+'</div><div class="cc-meta">отправить курьера →</div></div>';
+    if(!state.deliveryQueue.length && !state.parcels.length) h+='<div class="ps-empty">Звонков пока нет</div>';
+    h+='</div></div>';
+  }
+  h+='<div class="counter-row">';
+  for(var i=0;i<maxSlots();i++){
+    var c=state.counter[i];
+    if(!c){ h+='<div class="client-slot-empty">'+(state.spawnRemaining>0?'Ждём клиента…':'Свободно')+'</div>'; continue; }
+    var T=CLIENT_TYPES[c.type], d=districtById(c.districtId);
+    var badge=(c.regularId?'<span class="badge reg">★ друг</span>':'')+(T.label?'<span class="badge '+c.type+'">'+T.label+'</span>':'');
+    h+='<div class="client-card'+(c.type==='vip'?' vip':'')+(c.fresh?' enter':'')+'" id="card-'+c.id+'" onclick="openAssemble(\''+c.id+'\')">' +
+      '<div class="cc-sprite">'+personSVG({skin:c.skin,hair:c.hair,outfit:c.outfit,hairStyle:c.hairStyle,size:72})+'</div>' +
+      '<div class="cc-name">'+c.name+badge+'</div>' +
+      '<div class="cc-meta">'+d.name+'</div>' +
+      '<div class="patience-bar"><div class="patience-fill" id="pat-'+c.id+'"></div></div>' +
+      '<div class="cc-order">'+c.order.text+'</div></div>';
+    c.fresh=false;
+  }
+  return h+'</div>';
+}
+
+/* ================= RENDER: ASSEMBLE ================= */
+function renderAssemble(){
+  var c=getClient(state.activeClientId);
+  if(!c){ state.screen='hub'; render(); return; }
+  var T=CLIENT_TYPES[c.type], d=districtById(c.districtId);
+  var giveLabel=c.delivery?'Упаковать для курьера':'Отдать букет';
+  var badge=(c.regularId?'<span class="badge reg">★ друг</span>':'')+(T.label?'<span class="badge '+c.type+'">'+T.label+'</span>':'');
+  document.getElementById('order-banner').innerHTML=
+    '<div class="ob-left"><div>'+personSVG({skin:c.skin,hair:c.hair,outfit:c.outfit,hairStyle:c.hairStyle,size:48})+'</div>' +
+    '<div><div class="ob-name">'+c.name+badge+' · '+d.name+'</div><div class="ob-text">'+c.order.text+'</div></div></div>' +
+    '<div class="patience-bar" style="max-width:150px"><div class="patience-fill" id="pat-assemble"></div></div>';
+
+  var slotsHTML='', evNow=asmComplete()?evaluateBouquet(state.assembly,c):null;
+  SLOT_KEYS.forEach(function(k){
+    var S=SLOTS[k], chips='';
+    var list=FLOWERS.slice().sort(function(a,b){ return (stockTotal(b.id)>0?1:0)-(stockTotal(a.id)>0?1:0); });
+    if(k==='filler') list=[GREENS].concat(list);
+    list.forEach(function(f){
+      var total=f.id==='greens' ? '∞' : stockTotal(f.id);
+      var sel=state.assembly[k]===f.id;
+      var dis=!sel && !canPick(k,f.id);
+      var tags=f.styles.map(function(s){return STYLES[s].label;}).join(', ');
+      chips+='<div class="fchip'+(sel?' sel':'')+(dis?' dis':'')+'" onclick="pickSlot(\''+k+'\',\''+f.id+'\')">' +
+        flowerIcon(f,34,false)+'<div class="fn">'+f.name+'</div><div class="fs">в наличии: '+total+'</div><div class="ft">'+(tags||'нейтральная')+'</div></div>';
+    });
+    slotsHTML+='<div class="slot-box"><div class="slot-title">'+S.label+'<span>'+S.hint+'</span></div><div class="chips">'+chips+'</div></div>';
+  });
+  slotsHTML+='<div class="mobile-give">'+(evNow ? starsHTML(evNow.stars)+'<button class="btn btn-primary" onclick="giveBouquet()">'+giveLabel+'</button>' : '<span class="muted">Выбери цветы во всех трёх слотах</span>')+'</div>';
+  document.getElementById('slots-col').innerHTML=slotsHTML;
+
+  var pv='<div class="detail-name" style="font-family:var(--font-pixel);font-size:11px">ВАШ БУКЕТ</div>'+renderBouquetPreview(state.assembly,c.order.style);
+  if(asmComplete()){
+    var ev=evaluateBouquet(state.assembly,c), o=c.order;
+    var styleCls=ev.styleRatio>=0.65?'ok':(ev.styleRatio>=0.4?'mid':'bad');
+    var priceCls=ev.price<=o.budget?'ok':(ev.price<=o.budget*1.15?'mid':'bad');
+    var freshCls=ev.fresh>=0.6?'ok':(ev.fresh>=0.35?'mid':'bad');
+    var freshTxt=ev.fresh>=0.6?'свежие':(ev.fresh>=0.35?'средние':'вянут');
+    pv+='<div class="metrics">' +
+      '<div class="metric"><span>Стиль «'+STYLES[o.style].label+'»</span><span class="'+styleCls+'">'+Math.round(ev.styleRatio*100)+'%</span></div>' +
+      '<div class="metric"><span>Цена / бюджет</span><span class="'+priceCls+'">'+ev.price+' / '+o.budget+'</span></div>' +
+      '<div class="metric"><span>Свежесть</span><span class="'+freshCls+'">'+freshTxt+'</span></div>';
+    if(o.avoid) pv+='<div class="metric"><span>Аллергия: '+getFlower(o.avoid).name+'</span><span class="'+(ev.hasAvoid?'bad':'ok')+'">'+(ev.hasAvoid?'⚠ ЕСТЬ!':'нет ✔')+'</span></div>';
+    if(o.fav) pv+='<div class="metric"><span>Любимое: '+getFlower(o.fav).name+'</span><span class="'+(ev.hasFav?'ok':'mid')+'">'+(ev.hasFav?'есть ♥':'нет')+'</span></div>';
+    pv+='</div><div>'+starsHTML(ev.stars)+'</div>';
+    pv+='<button class="btn btn-primary" style="width:100%" onclick="giveBouquet()">'+giveLabel+'</button>';
+  } else {
+    pv+='<div class="muted" style="text-align:center">Выбери цветы во всех трёх слотах — покажу оценку заранее.</div>';
+    pv+='<button class="btn btn-inactive" style="width:100%" disabled>'+giveLabel+'</button>';
+  }
+  pv+='<button class="btn btn-secondary btn-sm" style="width:100%" onclick="showScreen(\'hub\')">← К прилавку</button>';
+  document.getElementById('preview-col').innerHTML=pv;
+  updateBars();
+}
+
+/* ================= RENDER: RESULT ================= */
+function renderResult(){
+  var r=state.lastResult;
+  if(!r){ state.screen='hub'; render(); return; }
+  var say;
+  if(r.allergy) say='АП-ЧХИ! У меня же аллергия! Я ухожу!';
+  else if(r.stars===3) say='Это именно то, что я хотел(а)! Великолепно! 🌸';
+  else if(r.stars===2) say='Неплохо, спасибо!';
+  else say='Ну... сойдёт. Могли бы и лучше.';
+  var h='<div>'+personSVG({skin:r.skin,hair:r.hair,outfit:r.outfit,hairStyle:r.hairStyle,size:120})+'</div>' +
+    '<div class="speech-bubble">'+say+'</div><div>'+starsHTML(r.stars,true)+'</div>' +
+    '<div class="reward-box"><div class="title">'+r.clientName+' · '+r.district+'</div>' +
+    '<div class="reward-line">🪙 '+(r.coins>0?'+':'')+formatCoins(r.coins)+'</div>' +
+    '<div class="reward-line">❤️ '+(r.rep>0?'+':'')+r.rep+' репутации</div>' +
+    (r.speed?'<div class="reward-line pos">⚡ Бонус за скорость +10%</div>':'') +
+    (r.type==='vip'?'<div class="reward-line" style="color:var(--gold)">VIP-клиент: повышенная оплата</div>':'') +
+    '</div>'+(r.story?storyBoxHTML(r.story):'')+'<button class="btn btn-primary" onclick="finishResult()">Дальше →</button>';
+  document.getElementById('result-scene').innerHTML=h;
+}
+
+/* ================= RENDER: STOCK ================= */
+function renderStock(){
+  var open=state.phase==='open';
+  document.getElementById('stock-note').innerHTML = open
+    ? '⚠ Магазин открыт: срочная закупка стоит на 30% дороже, а клиенты ждут!'
+    : 'Закупай цветы заранее: они вянут. Свежесть влияет на оценку букета, а завядшее пропадает вечером.';
+  document.getElementById('stock-note').innerHTML += ' <b>Склад: '+stockStemsAll()+' / '+stockCapacity()+' шт.</b>';
+  var html='';
+  FLOWERS.forEach(function(f){
+    var tot=stockTotal(f.id), arr=(state.stock[f.id]||[]).slice().sort(function(a,b){return b.age-a.age;});
+    var sh=shelfOf(f.id), fresh='—', warn='';
+    if(tot>0){
+      var oldest=arr[0].age, left=Math.max(0,sh-oldest);
+      fresh='●'.repeat(left)+'○'.repeat(Math.max(0,sh-left));
+      var dying=0; arr.forEach(function(b){ if(b.age+1>=sh) dying+=b.n; });
+      if(dying>0) warn='<div class="sc-row warn"><span>⚠ Завянут сегодня</span><span>'+dying+' шт.</span></div>';
+    }
+    var cost=wholesaleCost(f.id), tags=f.styles.map(function(s){return STYLES[s].label;}).join(', ');
+    html+='<div class="stock-card"><div class="sc-top">'+flowerIcon(f,50,true)+'<div><div class="sc-name">'+f.name+'</div><div class="sc-tags">'+tags+'</div></div></div>' +
+      '<div class="sc-row"><span>Закупка</span><span>'+cost+' 🪙 / шт</span></div>' +
+      '<div class="sc-row"><span>На складе</span><span>'+tot+' шт</span></div>' +
+      '<div class="sc-row"><span>Свежесть</span><span>'+fresh+'</span></div>' +
+      '<div class="sc-row"><span>Живёт</span><span>'+sh+' дн.</span></div>' + warn +
+      '<div class="sc-actions"><button class="btn btn-secondary btn-sm" onclick="buyFlower(\''+f.id+'\',1)">+1</button><button class="btn btn-primary btn-sm" onclick="buyFlower(\''+f.id+'\',5)">+5</button></div></div>';
+  });
+  document.getElementById('stock-grid').innerHTML=html;
+}
+
+/* ================= RENDER: MAP ================= */
+function renderMap(){
+  var level=getRepLevel(), pins='', cur=state.counter[0]?state.counter[0].districtId:null, legend='';
+  pins+='<div class="map-pin shop" style="left:'+SHOP_POS.x+'%;top:'+SHOP_POS.y+'%;"><div class="map-pin-dot"></div><div class="map-pin-label">🏪 Магазин</div></div>';
+  DISTRICTS.forEach(function(d){
+    var un=d.reqLevel<=level;
+    var cls='map-pin'+(un?' unlocked':' locked')+((un&&d.id===cur)?' current':'');
+    pins+='<div class="'+cls+'" style="left:'+d.x+'%;top:'+d.y+'%;"><div class="map-pin-dot"></div><div class="map-pin-label">'+(un?d.name:'🔒 Ур.'+d.reqLevel)+'</div></div>';
+    legend+='<div>'+(un?'🟢':'⬛')+' '+d.name+' — бюджеты клиентов ×'+d.priceMult.toFixed(2)+(un?'':' (с Ур.'+d.reqLevel+')')+'</div>';
+  });
+  document.getElementById('map-area').innerHTML='<div class="map-bg"></div>'+pins;
+  document.getElementById('map-legend').innerHTML=legend+'<div>Пульсирует район первого клиента у прилавка. Чем богаче район, тем выше бюджет и чаевые. '+(deliveryUnlocked()?'Курьеры выезжают из магазина 🏪.':'Доставка откроется на Ур.2.')+'</div>';
+}
+
+/* ================= RENDER: SHOP ================= */
+function buyUpgrade(id){
+  var up=null; UPGRADES.forEach(function(u){ if(u.id===id) up=u; });
+  if(!up || state.upgrades[id]) return;
+  if(id==='courier3' && !state.upgrades.courier2){ showToast('Сначала найми второго курьера'); return; }
+  if(state.coins<up.cost){ showToast('Недостаточно монет 🪙'); return; }
+  state.coins-=up.cost; state.upgrades[id]=true;
+  ensureCouriers();
+  sfx('buy'); showToast('Куплено: '+up.name);
+  if(id==='franchise'){ sfx('levelup'); confetti(120); showEndModal('franchise'); }
+  render();
+}
+function renderShop(){
+  var html='<div class="shop-h">Улучшения</div>';
+  UPGRADES.forEach(function(u){
+    var owned=state.upgrades[u.id], aff=state.coins>=u.cost;
+    var cls=owned?'btn-inactive':(aff?'btn-primary':'btn-inactive');
+    var label=owned?'Куплено ✓':('Купить за '+formatCoins(u.cost)+' 🪙');
+    html+='<div class="upgrade-card"><div class="upgrade-icon">'+u.icon+'</div><div class="upgrade-name">'+u.name+'</div><div class="upgrade-desc">'+u.desc+'</div>' +
+      '<button class="btn '+cls+'" '+(owned?'disabled':'')+' onclick="buyUpgrade(\''+u.id+'\')">'+label+'</button></div>';
+  });
+  var lvl=state.warehouse, maxed=lvl>=WAREHOUSE_COSTS.length, cost=maxed?0:WAREHOUSE_COSTS[lvl];
+  html+='<div class="upgrade-card"><div class="upgrade-icon">📦</div><div class="upgrade-name">Склад (ур. '+(lvl+1)+')</div><div class="upgrade-desc">Вместимость: '+stockCapacity()+' шт. '+(maxed?'Максимум.':'Следующий уровень: '+(stockCapacity()+40)+' шт.')+'</div>' +
+    '<button class="btn '+(maxed?'btn-inactive':(state.coins>=cost?'btn-primary':'btn-inactive'))+'" '+(maxed?'disabled':'')+' onclick="buyWarehouse()">'+(maxed?'Максимум ✓':'Расширить за '+formatCoins(cost)+' 🪙')+'</button></div>';
+  html+='<div class="shop-h">Декор магазина (видно в зале)</div>';
+  DECOR.forEach(function(d){
+    var owned=state.decor[d.id], aff=state.coins>=d.cost;
+    html+='<div class="upgrade-card"><div class="upgrade-icon">'+d.icon+'</div><div class="upgrade-name">'+d.name+'</div><div class="upgrade-desc">'+d.desc+'</div>' +
+      '<button class="btn '+(owned?'btn-inactive':(aff?'btn-primary':'btn-inactive'))+'" '+(owned?'disabled':'')+' onclick="buyDecor(\''+d.id+'\')">'+(owned?'Куплено ✓':'Купить за '+formatCoins(d.cost)+' 🪙')+'</button></div>';
+  });
+  document.getElementById('upgrades-grid').innerHTML=html;
+}
+
+/* ================= RENDER: QUESTS ================= */
+function renderQuests(){
+  var tabs=[{id:'daily',l:'Ежедневные'},{id:'weekly',l:'Недельные'},{id:'monthly',l:'Месячные'},{id:'goals',l:'Цели'}], th='';
+  tabs.forEach(function(t){ th+='<button class="tab-chip'+(questTab===t.id?' active':'')+'" onclick="setQuestTab(\''+t.id+'\')">'+t.l+'</button>'; });
+  document.getElementById('quests-tabs').innerHTML=th;
+  var arr=questArrayForTab(questTab), html='';
+  if(questTab==='goals') html+=rankingHTML();
+  arr.forEach(function(q,i){
+    var p=getQuestProgress(q), pct=Math.min(100,Math.round(p/q.target*100)), rw=[];
+    if(q.reward.coins) rw.push('+'+q.reward.coins+' 🪙');
+    if(q.reward.reputation) rw.push('+'+q.reward.reputation+' ❤️');
+    var can=p>=q.target&&!q.claimed;
+    html+='<div class="quest-card'+(q.claimed?' claimed':'')+'"><div class="quest-top"><span>'+q.label+'</span><span>'+rw.join(' ')+'</span></div>' +
+      '<div class="quest-bar"><div class="quest-bar-fill" style="width:'+pct+'%"></div></div>' +
+      '<div class="quest-bottom"><span>'+formatCoins(Math.min(p,q.target))+'/'+formatCoins(q.target)+'</span>' +
+      '<button class="btn '+(can?'btn-primary':'btn-inactive')+'" '+(can?'':'disabled')+' onclick="claimQuest(\''+questTab+'\','+i+')">'+(q.claimed?'Получено ✓':(p>=q.target?'Забрать':'В процессе'))+'</button></div></div>';
+  });
+  document.getElementById('quests-list').innerHTML=html||'<p class="muted">Пока пусто.</p>';
+}
+
+/* ================= MODALS / SETTINGS ================= */
+function openModal(n){ if(n==='settings') updateSoundToggleUI(); document.getElementById('modal-'+n).classList.add('active'); }
+function closeModal(n){ document.getElementById('modal-'+n).classList.remove('active'); coachRefresh(); }
+function toggleSound(){ state.settings.sound=!state.settings.sound; updateSoundToggleUI(); saveState(); if(state.settings.sound) sfx('click'); }
+function updateSoundToggleUI(){
+  var a=document.getElementById('toggle-sound'); if(a) a.classList.toggle('on',state.settings.sound);
+  var m=document.getElementById('toggle-music'); if(m) m.classList.toggle('on',state.settings.music!==false);
+  var t=document.getElementById('toggle-tips'); if(t) t.classList.toggle('on',!state.tutorial.off);
+}
+function confirmReset(){
+  var btn=document.getElementById('btn-reset');
+  if(!resetArmed){
+    resetArmed=true; btn.textContent='Точно сбросить? Нажмите ещё раз';
+    setTimeout(function(){ resetArmed=false; if(btn) btn.textContent='Сбросить прогресс'; },3000);
+  } else { resetArmed=false; doReset(); }
+}
+function doReset(){
+  try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
+  state=defaultState();
+  try{ redrawHubBg(); }catch(e){}
+  closeModal('settings');
+  updateMenuButtonLabel();
+  showScreen('menu');
+}
+function updateMenuButtonLabel(){
+  var b=document.getElementById('btn-start');
+  if(b) b.textContent=state.started?'Продолжить игру':'Начать игру';
+}
+
+
+/* ================= DELIVERY ================= */
+function deliveryUnlocked(){ return getRepLevel()>=2; }
+function ensureCouriers(){
+  var n=1+(state.upgrades.courier2?1:0)+(state.upgrades.courier3?1:0);
+  while(state.couriers.length<n) state.couriers.push({id:'k'+(state.couriers.length+1), state:'idle', legs:[], legIdx:0, legTime:0, load:[]});
+}
+function getParcel(id){ for(var i=0;i<state.parcels.length;i++) if(state.parcels[i].id===id) return state.parcels[i]; return null; }
+function travelMs(a,b){
+  var d=Math.sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));
+  return Math.round(d*600*(state.upgrades.scooter?0.75:1)*evMul('courier'));
+}
+function planRoute(parcelIds){
+  var ds=[];
+  parcelIds.forEach(function(id){ var p=getParcel(id); if(p && ds.indexOf(p.districtId)<0) ds.push(p.districtId); });
+  var pos={x:SHOP_POS.x,y:SHOP_POS.y}, legs=[], rest=ds.slice();
+  while(rest.length){
+    var bi=0, bd=1e9;
+    for(var i=0;i<rest.length;i++){
+      var dd=districtById(rest[i]), dist=Math.sqrt((dd.x-pos.x)*(dd.x-pos.x)+(dd.y-pos.y)*(dd.y-pos.y));
+      if(dist<bd){ bd=dist; bi=i; }
+    }
+    var nd=districtById(rest.splice(bi,1)[0]);
+    legs.push({districtId:nd.id, from:{x:pos.x,y:pos.y}, to:{x:nd.x,y:nd.y}, time:travelMs(pos,nd)});
+    pos={x:nd.x,y:nd.y};
+  }
+  if(legs.length) legs.push({districtId:null, from:{x:pos.x,y:pos.y}, to:{x:SHOP_POS.x,y:SHOP_POS.y}, time:travelMs(pos,SHOP_POS)});
+  return legs;
+}
+function toggleParcel(id){
+  var i=state.deliverySel.indexOf(id);
+  if(i>=0) state.deliverySel.splice(i,1);
+  else {
+    if(state.deliverySel.length>=3){ showToast('Курьер берёт до 3 заказов'); return; }
+    state.deliverySel.push(id);
+  }
+  render();
+}
+function dispatchCourier(){
+  var free=null;
+  state.couriers.forEach(function(c){ if(!free && c.state==='idle') free=c; });
+  var sel=state.deliverySel.filter(function(id){ return !!getParcel(id); });
+  if(!free){ showToast('Все курьеры в пути'); return; }
+  if(!sel.length){ showToast('Выбери заказы для отправки'); return; }
+  free.legs=planRoute(sel); free.legIdx=0; free.legTime=0; free.state='out'; free.load=[];
+  sel.forEach(function(id){ free.load.push(getParcel(id)); });
+  state.parcels=state.parcels.filter(function(p){ return sel.indexOf(p.id)<0; });
+  state.deliverySel=[];
+  state.coins-=COURIER_WAGE; state.dayStats.spent+=COURIER_WAGE;
+  sfx('courier'); showToast('🚴 Курьер выехал (−'+COURIER_WAGE+' 🪙)');
+  render();
+}
+function completeDelivery(p){
+  var late=p.timeLeft<=0;
+  var coins=calcPay(p.price,p.stars,p.type,p.districtId,true);
+  var rep=calcRep(p.stars,p.type);
+  if(late){ coins=Math.round(coins*0.4); if(p.stars>0) rep=-1; }
+  var out=applyOutcome({stars:p.stars, coins:coins, rep:rep, regularId:p.regularId, delivery:true});
+  sfx(p.stars>0?'coin':'bad');
+  var msg = p.stars===0 ? '🤧 '+p.clientName+': аллергия! (−6 ❤️)' : '🚴 Доставлено: '+p.clientName+' (+'+coins+' 🪙)'+(late?' — с опозданием':'');
+  showToast(msg);
+  if(out.story) showStoryModal(out.story);
+}
+function advanceCouriers(dt){
+  var changed=false;
+  state.couriers.forEach(function(c){
+    if(c.state!=='out') return;
+    c.load.forEach(function(p){ p.timeLeft-=dt; });
+    c.legTime+=dt;
+    while(c.state==='out' && c.legIdx<c.legs.length && c.legTime>=c.legs[c.legIdx].time){
+      var leg=c.legs[c.legIdx];
+      c.legTime-=leg.time; c.legIdx+=1;
+      if(leg.districtId){
+        var rest=[];
+        c.load.forEach(function(p){ if(p.districtId===leg.districtId) completeDelivery(p); else rest.push(p); });
+        c.load=rest; changed=true;
+      }
+      if(c.legIdx>=c.legs.length){ c.state='idle'; c.legs=[]; c.legIdx=0; c.legTime=0; c.load=[]; changed=true; }
+    }
+  });
+  return changed;
+}
+function courierPos(c){
+  if(c.state!=='out' || !c.legs[c.legIdx]) return SHOP_POS;
+  var leg=c.legs[c.legIdx], t=leg.time>0 ? Math.min(1,c.legTime/leg.time) : 1;
+  return {x:leg.from.x+(leg.to.x-leg.from.x)*t, y:leg.from.y+(leg.to.y-leg.from.y)*t};
+}
+function courierRemainingMs(c){
+  var t=0;
+  for(var i=c.legIdx;i<c.legs.length;i++) t+=c.legs[i].time;
+  return Math.max(0,t-c.legTime);
+}
+function updateCouriersViz(){
+  if(state.screen!=='delivery') return;
+  state.couriers.forEach(function(c){
+    var dot=document.getElementById('cdot-'+c.id);
+    if(dot){ var p=courierPos(c); dot.style.left=p.x+'%'; dot.style.top=p.y+'%'; }
+    var info=document.getElementById('cinfo-'+c.id);
+    if(info) info.textContent = c.state==='out' ? '🚴 в пути · '+Math.ceil(courierRemainingMs(c)/1000)+' с' : 'свободен';
+  });
+}
+function renderDelivery(){
+  ensureCouriers();
+  state.deliverySel=state.deliverySel.filter(function(id){ return !!getParcel(id); });
+  var level=getRepLevel(), pins='';
+  var selD=state.deliverySel.map(function(id){ return getParcel(id).districtId; });
+  pins+='<div class="map-pin shop" style="left:'+SHOP_POS.x+'%;top:'+SHOP_POS.y+'%;"><div class="map-pin-dot"></div><div class="map-pin-label">🏪 Магазин</div></div>';
+  DISTRICTS.forEach(function(d){
+    var un=d.reqLevel<=level;
+    var isDest=selD.indexOf(d.id)>=0, shown=un||isDest;
+    pins+='<div class="map-pin'+(shown?' unlocked':' locked')+(isDest?' current':'')+'" style="left:'+d.x+'%;top:'+d.y+'%;"><div class="map-pin-dot"></div><div class="map-pin-label">'+(shown?d.name:'🔒 Ур.'+d.reqLevel)+'</div></div>';
+  });
+  var legs=planRoute(state.deliverySel), pts=[SHOP_POS.x+','+SHOP_POS.y];
+  legs.forEach(function(l){ pts.push(l.to.x+','+l.to.y); });
+  var svg=legs.length ? '<svg class="route-svg" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="'+pts.join(' ')+'" fill="none" stroke="#f7c948" stroke-width="0.8" stroke-dasharray="2 2"/></svg>' : '';
+  var dots=''; state.couriers.forEach(function(c){ dots+='<div class="courier-dot" id="cdot-'+c.id+'">🚴</div>'; });
+  document.getElementById('del-map').innerHTML='<div class="map-bg"></div>'+svg+pins+dots;
+
+  var eta={}, acc=0, names=['🏪'], total=0;
+  legs.forEach(function(l){ acc+=l.time; if(l.districtId){ eta[l.districtId]=acc; names.push(districtById(l.districtId).name); } });
+  total=acc; if(legs.length) names.push('🏪');
+  document.getElementById('del-route').innerHTML = legs.length
+    ? '<div class="route-note">Маршрут: '+names.join(' → ')+' · ≈ '+Math.round(total/1000)+' с. Оплата курьеру '+COURIER_WAGE+' 🪙.</div>'
+    : '<div class="route-note">Выбери до 3 готовых заказов — маршрут построится автоматически (ближайший район первым). Один курьер может развезти несколько заказов за одну поездку.</div>';
+
+  var side='<div class="panel"><h4>Курьеры</h4>';
+  state.couriers.forEach(function(c,i){ side+='<div class="courier-row"><span>🚴 Курьер '+(i+1)+'</span><span id="cinfo-'+c.id+'"></span></div>'; });
+  side+='</div><div class="panel"><h4>Готово к отправке ('+state.parcels.length+')</h4>';
+  if(!state.parcels.length) side+='<div class="route-note">Пока пусто. Собери букет для заказа по телефону 📞 на главном экране — он появится здесь.</div>';
+  state.parcels.forEach(function(p){
+    var sel=state.deliverySel.indexOf(p.id)>=0, warn='';
+    if(sel && eta[p.districtId]!==undefined && eta[p.districtId]>p.timeLeft) warn=' <span class="warn">⚠ опоздает</span>';
+    side+='<div class="parcel-row'+(sel?' sel':'')+'" onclick="toggleParcel(\''+p.id+'\')">' +
+      personSVG({skin:p.skin,hair:p.hair,outfit:p.outfit,hairStyle:p.hairStyle,size:32}) +
+      '<div class="pr-info"><span>'+p.clientName+' · '+districtById(p.districtId).name+warn+'</span>' +
+      '<span>'+starsHTML(p.stars).replace('class="stars"','class="stars" style="font-size:14px"')+'</span>' +
+      '<div class="patience-bar" style="max-width:none"><div class="patience-fill" id="par-'+p.id+'"></div></div></div>' +
+      '<div>'+(sel?'✔':'☐')+'</div></div>';
+  });
+  var free=state.couriers.some(function(c){return c.state==='idle';});
+  var can=free && state.deliverySel.length>0;
+  side+='<button class="btn '+(can?'btn-primary':'btn-inactive')+'" style="width:100%" '+(can?'':'disabled')+' onclick="dispatchCourier()">Отправить курьера ('+state.deliverySel.length+'/3)</button></div>';
+  document.getElementById('del-side').innerHTML=side;
+  updateBars(); updateCouriersViz();
+}
+
+/* ================= REGULARS / STORIES ================= */
+var AFF_NEED = [2,4,6];
+function applyRegular(rid,stars){
+  var R=getRegular(rid);
+  if(!R) return null;
+  var st=state.regulars[rid]||(state.regulars[rid]={aff:0,ch:0,visits:0});
+  st.visits=(st.visits||0)+1;
+  if(stars<2) return null;
+  st.aff+=1;
+  if(st.ch<3 && st.aff>=AFF_NEED[st.ch]){
+    var chap=R.chapters[st.ch]; st.ch+=1;
+    state.coins+=chap.coins;
+    return {name:R.name, title:chap.title, text:chap.text, coins:chap.coins, perk: st.ch===3 ? R.perkText : null};
+  }
+  return null;
+}
+function storyBoxHTML(st){
+  return '<div class="story-box"><div class="title">💞 '+st.name+': '+st.title+'</div><div>'+st.text+'</div><div class="reward-line">🪙 +'+st.coins+(st.perk?' · 🎁 Постоянный бонус: '+st.perk:'')+'</div></div>';
+}
+function showInfoModal(title,text,reward){
+  document.getElementById('story-title').textContent=title;
+  document.getElementById('story-text').textContent=text;
+  document.getElementById('story-reward').textContent=reward||'';
+  document.getElementById('modal-story').classList.add('active');
+}
+function showStoryModal(st){
+  showInfoModal((st.name+': '+st.title).toUpperCase(), st.text, '🪙 +'+st.coins+(st.perk?' · 🎁 Постоянный бонус: '+st.perk:''));
+  sfx('story'); confetti(40);
+}
+function closeStory(){ document.getElementById('modal-story').classList.remove('active'); coachRefresh(); }
+function renderRegulars(){
+  var h='';
+  REGULARS.forEach(function(R){
+    var st=state.regulars[R.id]||{aff:0,ch:0,visits:0};
+    var locked=state.day<R.fromDay;
+    var hearts='♥'.repeat(Math.min(st.aff,6))+'♡'.repeat(Math.max(0,6-st.aff));
+    var chs='';
+    R.chapters.forEach(function(c,i){
+      chs+= st.ch>i ? '<div class="chapter"><b>'+c.title+'.</b> '+c.text+'</div>' : '<div class="chapter lock">🔒 Глава '+(i+1)+' откроется при '+AFF_NEED[i]+' ♥</div>';
+    });
+    h+='<div class="reg-card'+(locked?' locked':'')+'"><div class="reg-top">'+personSVG({skin:R.look.skin,hair:R.look.hair,outfit:R.look.outfit,hairStyle:R.look.hairStyle,size:60})+
+      '<div><div class="reg-name">'+R.name+'</div><div class="reg-bio">'+R.bio+'</div></div></div>' +
+      (locked ? '<div class="reg-bio">Появится в магазине с дня '+R.fromDay+'.</div>' :
+      '<div class="hearts">'+hearts+'</div><div class="reg-bio">Визитов: '+(st.visits||0)+'. Оценка 2★ и выше приближает к дружбе.</div>'+chs+
+      '<div class="perk '+(st.ch>=3?'pos':'')+'">'+(st.ch>=3?'🎁 Бонус активен: ':'🎁 Бонус после 3 глав: ')+R.perkText+'</div>')+'</div>';
+  });
+  document.getElementById('reg-grid').innerHTML=h;
+}
+
+
+/* ================= v4: WAREHOUSE / DECOR / ADS / BANK ================= */
+UPGRADES.push({id:'franchise', name:'Второй магазин (франшиза)', icon:'🏬', desc:'Сеть магазинов: +15% к оплате навсегда и финальная победа.', cost:25000});
+var WAREHOUSE_COSTS=[600,1200,2400];
+function stockCapacity(){ return 60+40*state.warehouse; }
+function buyWarehouse(){
+  var lvl=state.warehouse;
+  if(lvl>=WAREHOUSE_COSTS.length) return;
+  var c=WAREHOUSE_COSTS[lvl];
+  if(state.coins<c){ showToast('Недостаточно монет 🪙'); return; }
+  state.coins-=c; state.warehouse+=1; sfx('buy');
+  showToast('Склад расширен: вместимость '+stockCapacity()+' шт.');
+  render();
+}
+var DECOR=[
+  {id:'garland', name:'Гирлянда', icon:'💡', desc:'Уют в зале: +5% к оплате заказов.', cost:600},
+  {id:'paint', name:'Картины', icon:'🖼️', desc:'Репутация за заказы +10%.', cost:1000},
+  {id:'clock', name:'Часы с кукушкой', icon:'🕰️', desc:'Клиенты ждут на 10% дольше.', cost:1400},
+  {id:'vines', name:'Плющ у окна', icon:'🌿', desc:'Закупка цветов дешевле на 5%.', cost:1800}
+];
+function buyDecor(id){
+  var d=null; DECOR.forEach(function(x){ if(x.id===id) d=x; });
+  if(!d || state.decor[id]) return;
+  if(state.coins<d.cost){ showToast('Недостаточно монет 🪙'); return; }
+  state.coins-=d.cost; state.decor[id]=true; sfx('buy');
+  try{ drawDecor(document.getElementById('hub-bg')); }catch(e){}
+  showToast('Куплено: '+d.name);
+  render();
+}
+function drawDecor(canvas){
+  if(!canvas || !canvas.getContext) return;
+  var g=canvas.getContext('2d'); g.imageSmoothingEnabled=false;
+  function R(x,y,w,h,c){ g.fillStyle=c; g.fillRect(x,y,w,h); }
+  var i,x,y;
+  if(state.decor.garland){
+    var cols=['#ef7fa4','#f7c948','#7be0a0','#b48ee0'];
+    R(0,4,160,1,'#241c30');
+    for(x=4,i=0;x<160;x+=8,i++){
+      var by=6+(i%2);
+      g.globalAlpha=0.18; R(x-2,by-2,6,6,cols[i%4]); g.globalAlpha=1;
+      R(x,by,2,2,cols[i%4]);
+    }
+  }
+  if(state.decor.paint){
+    [14,126].forEach(function(px){
+      R(px,8,24,14,'#c99a63'); R(px+1,9,22,12,'#2a3a5a'); R(px+1,16,22,5,'#3f7d3a');
+      R(px+15,11,3,3,'#f7c948'); R(px+5,14,7,3,'#5fa14f'); R(px+9,13,3,1,'#7ab86a');
+    });
+  }
+  if(state.decor.clock){
+    for(y=-5;y<=5;y++) for(x=-5;x<=5;x++) if(x*x+y*y<=26) R(80+x,10+y,1,1, x*x+y*y>=19 ? '#6b4423' : '#f6f1e3');
+    R(80,6,1,4,'#241c30'); R(80,10,3,1,'#241c30');
+  }
+  if(state.decor.vines){
+    [58,98].forEach(function(vx,side){
+      for(y=14;y<=46;y+=2){
+        var off=Math.round(Math.sin(y*0.5)*1.5);
+        R(vx+off+(side?1:0),y,1,2,'#3f7d3a');
+        if((y/2)%2===0) R(vx+off+(side?3:-2),y,2,2,'#5fa14f');
+      }
+    });
+  }
+}
+function redrawHubBg(){
+  var c=document.getElementById('hub-bg');
+  if(!c) return;
+  drawShopInterior(c); drawDecor(c);
+}
+function adCost(){ return 150+30*getRepLevel(); }
+function buyAd(){
+  if(state.phase!=='morning' || state.adToday) return;
+  var c=adCost();
+  if(state.coins<c){ showToast('Не хватает монет 🪙'); return; }
+  state.coins-=c; state.dayStats.spent+=c; state.adToday=true; sfx('buy');
+  showToast('📣 Реклама куплена: +2 клиента сегодня');
+  render();
+}
+function loanLimit(){ return 800*getRepLevel(); }
+function takeLoan(n){
+  if(state.loan+n>loanLimit()){ showToast('Лимит кредита: '+loanLimit()+' 🪙 (растёт с уровнем)'); return; }
+  state.loan+=n; state.coins+=n; state.loanTaken=true; sfx('coin');
+  render();
+}
+function repayLoan(n){
+  var amt = n==='all' ? state.loan : n;
+  amt=Math.min(amt,state.loan,Math.max(0,state.coins));
+  if(amt<=0){ showToast(state.loan<=0 ? 'Долгов нет 🎉' : 'Нечем платить'); return; }
+  state.coins-=amt; state.loan-=amt; sfx('coin');
+  render();
+}
+function renderBank(){
+  var lim=loanLimit(), debt=state.loan;
+  var h='<div class="panel"><h4>🏦 Кредитный отдел</h4>' +
+    '<div class="info-row"><span>Долг</span><span class="v '+(debt>0?'neg':'')+'">'+formatCoins(debt)+' 🪙</span></div>' +
+    '<div class="info-row"><span>Лимит (800 × уровень)</span><span class="v">'+formatCoins(lim)+' 🪙</span></div>' +
+    '<div class="info-row"><span>Проценты</span><span class="v">+4% в конце каждого дня</span></div>' +
+    '<div class="info-note">Если долг превысит двойной лимит, банк закроет магазин. Касса в минус после аренды — тоже банкротство.</div></div>';
+  h+='<div class="panel"><h4>Взять кредит</h4><div class="info-actions">';
+  [300,600,1000].forEach(function(n){ h+='<button class="btn btn-secondary" onclick="takeLoan('+n+')">+'+n+' 🪙</button>'; });
+  h+='</div></div><div class="panel"><h4>Погасить</h4><div class="info-actions">';
+  [100,500].forEach(function(n){ h+='<button class="btn btn-secondary" onclick="repayLoan('+n+')">−'+n+'</button>'; });
+  h+='<button class="btn btn-primary" onclick="repayLoan(\'all\')">Всё</button></div></div>';
+  document.getElementById('bank-wrap').innerHTML=h;
+}
+
+/* ================= v4: GOALS / RIVALS ================= */
+var GOALS=[
+  {id:'g_income1', label:'Заработать 5 000 монет за всё время', target:5000, reward:{coins:300}},
+  {id:'g_income2', label:'Заработать 25 000 монет за всё время', target:25000, reward:{coins:1000}},
+  {id:'g_three1', label:'Получить 20 оценок 3★', target:20, reward:{coins:400}},
+  {id:'g_three2', label:'Получить 100 оценок 3★', target:100, reward:{coins:1500,reputation:30}},
+  {id:'g_deliv', label:'Доставить 30 заказов курьерами', target:30, reward:{coins:800}},
+  {id:'g_level', label:'Достичь 5 уровня репутации', target:5, reward:{coins:1000}},
+  {id:'g_friends', label:'Открыть бонусы всех четырёх друзей', target:4, reward:{coins:2000,reputation:40}},
+  {id:'g_decor', label:'Купить весь декор магазина', target:4, reward:{coins:1200}},
+  {id:'g_bank', label:'Взять кредит и полностью вернуть его', target:1, reward:{coins:300}},
+  {id:'g_rival', label:'Занять 1 место в рейтинге магазинов за месяц', target:1, reward:{coins:1500}},
+  {id:'g_franchise', label:'Открыть второй магазин (франшиза)', target:1, reward:{coins:5000,reputation:100}}
+];
+function goalProgress(id){
+  switch(id){
+    case 'g_income1': case 'g_income2': return state.totalIncome;
+    case 'g_three1': case 'g_three2': return state.totalThree;
+    case 'g_deliv': return state.totalDeliveries;
+    case 'g_level': return getRepLevel();
+    case 'g_friends': return REGULARS.filter(function(r){ return perkActive(r.id); }).length;
+    case 'g_decor': return DECOR.filter(function(d){ return state.decor[d.id]; }).length;
+    case 'g_bank': return (state.loanTaken && state.loan===0) ? 1 : 0;
+    case 'g_rival': return state.rank1Count>0 ? 1 : 0;
+    case 'g_franchise': return state.upgrades.franchise ? 1 : 0;
+  }
+  return 0;
+}
+function goalQuests(){
+  return GOALS.map(function(g){
+    return {label:g.label, target:g.target, counterKey:'goal:'+g.id, reward:g.reward, claimed:!!state.goalsClaimed[g.id], _goal:g.id};
+  });
+}
+var RIVALS=[{name:'Мимоза',monthly:5000},{name:'Лепесток',monthly:9000},{name:'Флора',monthly:14000}];
+var MONTH_PRIZES={1:{coins:1500,rep:50},2:{coins:800,rep:25},3:{coins:300,rep:10},4:{coins:0,rep:0}};
+function monthFraction(){
+  var d=new Date(), days=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  return Math.min(1,(d.getDate()-1+d.getHours()/24)/days);
+}
+function rankingNow(frac){
+  var rows=RIVALS.map(function(r){ return {name:r.name, v:Math.round(r.monthly*frac), me:false}; });
+  rows.push({name:'Вы', v:state.monthlyIncome, me:true});
+  rows.sort(function(a,b){ return b.v-a.v; });
+  return rows;
+}
+function myRank(rows){ for(var i=0;i<rows.length;i++) if(rows[i].me) return i+1; return rows.length; }
+function grantMonthPrize(){
+  if(state.monthlyKey===null || state.monthlyIncome<=0) return;
+  var rows=rankingNow(1), rank=myRank(rows), pz=MONTH_PRIZES[rank];
+  if(rank===1) state.rank1Count+=1;
+  if(pz.coins>0){ state.coins+=pz.coins; state.reputation+=pz.rep; }
+  showInfoModal('ИТОГИ МЕСЯЦА','Рейтинг магазинов города: вы заняли '+rank+' место с выручкой '+formatCoins(state.monthlyIncome)+' 🪙.', pz.coins>0 ? 'Приз: 🪙 +'+pz.coins+' · ❤️ +'+pz.rep : 'Приза нет — в следующем месяце получится лучше!');
+}
+function rankingHTML(){
+  var rows=rankingNow(monthFraction()), max=1;
+  rows.forEach(function(r){ if(r.v>max) max=r.v; });
+  var rank=myRank(rows), h='<div class="panel"><h4>🏆 Рейтинг магазинов города — этот месяц</h4>';
+  rows.forEach(function(r,i){
+    h+='<div class="rank-row'+(r.me?' me':'')+'"><span style="min-width:110px">'+(i+1)+'. '+r.name+'</span><div class="quest-bar" style="flex:1;margin:0 10px"><div class="quest-bar-fill" style="width:'+Math.round(r.v/max*100)+'%"></div></div><span>'+formatCoins(r.v)+'</span></div>';
+  });
+  h+='<div class="info-note">Вы на '+rank+' месте. Призы в конце месяца: 1 место — 1 500 🪙 и 50 ❤️, 2 — 800 🪙, 3 — 300 🪙. Соперники растут весь месяц по календарю.</div></div>';
+  return h;
+}
+
+/* ================= v4: TUTORIAL ================= */
+var coachCurrent=null;
+var TIPS=[
+  {id:'welcome', target:'[data-nav="stock"]', text:'Добро пожаловать во FlowerShop! Сначала нужны цветы: открой «Склад» и закупись.',
+   cond:function(){ return state.day===1 && state.phase==='morning' && state.screen==='hub'; }},
+  {id:'stock', target:'.stock-card .btn-primary', text:'Здесь покупаешь цветы (+1 / +5). Они вянут: смотри «Свежесть». Для старта хватит и запаса, но докупи разных цветов — клиенты просят разное.',
+   cond:function(){ return state.screen==='stock' && state.day===1; }},
+  {id:'open', target:'.info-actions .btn-primary', text:'Готов? Жми «Открыть магазин» — начнут приходить клиенты. Время пойдёт!',
+   cond:function(){ return !!state.tutorial.seen.welcome && state.day===1 && state.phase==='morning' && state.screen==='hub'; }},
+  {id:'client', target:'.client-card', text:'К прилавку пришёл клиент. Полоска — его терпение. Нажми на клиента, чтобы увидеть заказ.',
+   cond:function(){ return state.phase==='open' && state.screen==='hub' && state.counter.length>0; }},
+  {id:'assemble', target:'.slot-box', text:'Читай заказ: стиль, бюджет, аллергии. Выбери цветы в 3 слота — оценка и цена видны заранее. Аллерген = 0 звёзд!',
+   cond:function(){ return state.screen==='assemble'; }},
+  {id:'result', target:'.reward-box', text:'★★★ — лучшая оплата и репутация. Репутация открывает новые районы, доставку и друзей.',
+   cond:function(){ return state.screen==='result'; }},
+  {id:'summary', target:'.info-actions .btn-primary', text:'Итоги дня: выручка, закупки, аренда и завядшие цветы. Старайся не держать лишний запас.',
+   cond:function(){ return state.phase==='summary' && state.screen==='hub'; }},
+  {id:'delivery', target:'[data-nav="delivery"]', text:'Открылась доставка! Иногда заказы приходят по телефону 📞: собери букет и отправь курьера из раздела «Доставка».',
+   cond:function(){ return deliveryUnlocked() && state.screen==='hub'; }},
+  {id:'phone', target:'.phone-card', text:'Звонок! Это заказ с доставкой: собери букет, он попадёт в «Готово». Потом отправь курьера (до 3 заказов за поездку).',
+   cond:function(){ return state.screen==='hub' && state.deliveryQueue.length>0; }},
+  {id:'friend', target:'.client-card .badge.reg', text:'Это постоянный клиент (★ друг). Угождай ему оценкой 2★ и выше: откроются истории и постоянные бонусы.',
+   cond:function(){ return state.screen==='hub' && state.counter.some(function(c){ return !!c.regularId; }); }},
+  {id:'bank', target:'[data-nav="bank"]', text:'Не хватает денег? В «Банке» можно взять кредит, но долг растёт на 4% в день — возвращай вовремя.',
+   cond:function(){ return state.screen==='hub' && state.phase==='morning' && state.coins<150 && state.day>1; }}
+];
+function coachRefresh(){
+  var el=document.getElementById('coach');
+  if(!el) return;
+  var glow=document.querySelectorAll('.coach-glow');
+  for(var i=0;i<glow.length;i++) glow[i].classList.remove('coach-glow');
+  if(state.tutorial.off || !state.started || state.screen==='menu'){ coachCurrent=null; el.classList.remove('show'); return; }
+  var mo=document.querySelectorAll('.modal-overlay.active');
+  if(mo && mo.length){ el.classList.remove('show'); return; }
+  if(coachCurrent && !coachCurrent.cond()){ state.tutorial.seen[coachCurrent.id]=true; coachCurrent=null; }
+  if(!coachCurrent){
+    for(var k=0;k<TIPS.length;k++){
+      var t=TIPS[k];
+      if(!state.tutorial.seen[t.id] && t.cond()){ coachCurrent=t; break; }
+    }
+  }
+  if(!coachCurrent){ el.classList.remove('show'); return; }
+  document.getElementById('coach-text').textContent=coachCurrent.text;
+  el.classList.add('show');
+  var tg=coachCurrent.target ? document.querySelector(coachCurrent.target) : null;
+  if(tg) tg.classList.add('coach-glow');
+}
+function coachNext(){
+  if(coachCurrent){ state.tutorial.seen[coachCurrent.id]=true; coachCurrent=null; }
+  saveState(); coachRefresh();
+}
+function coachSkip(){ state.tutorial.off=true; coachCurrent=null; saveState(); coachRefresh(); updateSoundToggleUI(); }
+function coachReset(){
+  state.tutorial={off:false,seen:{}}; coachCurrent=null; saveState();
+  updateSoundToggleUI(); closeModal('settings'); render();
+}
+
+
+/* ================= v4.1: SAVE EXPORT / IMPORT ================= */
+var SAVE_PREFIX='FS1:', importArmed=false;
+function b64enc(str){
+  var bytes=new TextEncoder().encode(str), bin='';
+  for(var i=0;i<bytes.length;i++) bin+=String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+function b64dec(b){
+  var bin=atob(b), bytes=new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+function hash32(str){
+  var h=2166136261;
+  for(var i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
+  return ('00000000'+h.toString(16)).slice(-8);
+}
+function buildSaveCode(){
+  var copy=JSON.parse(JSON.stringify(state));
+  copy.screen='menu';
+  var json=JSON.stringify({v:1, state:copy});
+  return SAVE_PREFIX+b64enc(json)+'.'+hash32(json);
+}
+function parseSaveCode(code){
+  code=(code||'').replace(/\s+/g,'');
+  if(code.indexOf(SAVE_PREFIX)!==0) throw new Error('это не код сохранения');
+  var body=code.slice(SAVE_PREFIX.length), dot=body.lastIndexOf('.');
+  if(dot<0) throw new Error('код обрезан');
+  var json;
+  try{ json=b64dec(body.slice(0,dot)); }catch(e){ throw new Error('код повреждён'); }
+  if(hash32(json)!==body.slice(dot+1)) throw new Error('код повреждён (не совпала контрольная сумма)');
+  var obj=JSON.parse(json);
+  if(!obj || typeof obj.state!=='object' || obj.state===null || typeof obj.state.day!=='number') throw new Error('в коде нет данных игры');
+  return mergeSave(obj.state);
+}
+function openSaveModal(){
+  var info=document.getElementById('save-info');
+  var when=state.savedAt ? new Date(state.savedAt).toLocaleString('ru-RU') : 'ещё не было';
+  info.textContent='Автосохранение: '+when+' · День '+state.day+' · '+formatCoins(state.coins)+' 🪙 · Ур.'+getRepLevel();
+  document.getElementById('save-code').value='';
+  importArmed=false;
+  var b=document.getElementById('btn-save-import'); if(b) b.textContent='Загрузить из кода';
+  openModal('save');
+}
+function saveShowCode(){
+  saveState();
+  document.getElementById('save-code').value=buildSaveCode();
+  showToast('Код готов — скопируй его');
+}
+function saveCopyCode(){
+  var ta=document.getElementById('save-code');
+  if(!ta.value) saveShowCode();
+  var done=function(){ showToast('📋 Код скопирован'); };
+  var fallback=function(){
+    try{ ta.focus(); ta.select(); if(document.execCommand('copy')){ done(); return; } }catch(e){}
+    showToast('Выдели код и скопируй вручную');
+  };
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(done,fallback);
+    else fallback();
+  }catch(e){ fallback(); }
+}
+function saveDownload(){
+  try{
+    saveState();
+    var blob=new Blob([buildSaveCode()],{type:'text/plain'});
+    var url=URL.createObjectURL(blob), a=document.createElement('a');
+    a.href=url; a.download='FlowerShop-save.txt';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); },1000);
+    showToast('Файл сохранения создан (если не скачался — скопируй код)');
+  }catch(e){ showToast('Не удалось создать файл — скопируй код'); }
+}
+function saveImportFromFile(inp){
+  var f=inp.files && inp.files[0];
+  if(!f) return;
+  var r=new FileReader();
+  r.onload=function(){
+    document.getElementById('save-code').value=String(r.result||'');
+    showToast('Файл прочитан — нажми «Загрузить из кода»');
+  };
+  r.onerror=function(){ showToast('Не удалось прочитать файл'); };
+  r.readAsText(f);
+  inp.value='';
+}
+function saveImportFromText(){
+  var cand;
+  try{ cand=parseSaveCode(document.getElementById('save-code').value); }
+  catch(e){ showToast('Не получилось: '+e.message); return; }
+  var btn=document.getElementById('btn-save-import');
+  if(!importArmed){
+    importArmed=true; btn.textContent='Заменить текущий прогресс? Нажми ещё раз';
+    setTimeout(function(){ importArmed=false; btn.textContent='Загрузить из кода'; },4000);
+    return;
+  }
+  importArmed=false; btn.textContent='Загрузить из кода';
+  applyImported(cand);
+}
+function applyImported(cand){
+  var backup=state, tut=JSON.stringify(cand.tutorial);
+  state=cand;
+  try{
+    ensureCouriers();
+    ['hub','stock','bank','map','shopUpgrades','quests','regulars','delivery'].forEach(function(sc){ state.screen=sc; render(); });
+  }catch(e){
+    state=backup; state.screen='menu'; coachCurrent=null; render();
+    showToast('Сохранение не подошло к этой версии игры');
+    return;
+  }
+  state.tutorial=JSON.parse(tut); coachCurrent=null; shownCoins=null; resetArmed=false;
+  state.screen='menu';
+  try{ redrawHubBg(); }catch(e){}
+  updateMenuButtonLabel(); updateSoundToggleUI();
+  closeModal('save');
+  render(); saveState();
+  showToast('💾 Прогресс загружен');
+}
+
+/* ================= INIT ================= */
+document.addEventListener('DOMContentLoaded',function(){
+  try{ drawMenuScene(document.getElementById('menu-canvas')); }catch(e){}
+  try{ redrawHubBg(); }catch(e){}
+  ensureCouriers();
+  if(location.hash==='#notut') state.tutorial.off=true;
+  updateMenuButtonLabel(); updateSoundToggleUI();
+  document.addEventListener('click',function(e){
+    if(Date.now()-lastSfx<120) return;
+    var t=e.target;
+    if(t && t.closest && t.closest('.btn,.nav-item,.tab-chip,.fchip,.client-card,.phone-card,.parcel-row,.icon-btn')) sfx('click');
+  });
+  document.addEventListener('visibilitychange',function(){
+    if(!audioCtx) return;
+    try{ if(document.hidden) audioCtx.suspend(); else audioCtx.resume(); }catch(e){}
+  });
+  render();
+  lastTick=Date.now();
+  setInterval(tickLoop,250);
+});
+</script>
+</body>
+</html>
